@@ -27,6 +27,7 @@ server.get("/test", (peticion, respuesta) => {
   respuesta.send("<h1>SISISISIS</h1>");
 });
 
+
 /**
  * Peticiones gestionadas por NextJS
  */
