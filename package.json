@@ -13,6 +13,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "esm": "^3.2.25",
+    "express": "^4.17.1",
     "next": "^10.1.2",
     "npx": "^10.2.2",
     "react": "^17.0.2",
