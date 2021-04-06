@@ -1,8 +1,8 @@
 {
-  "name": "VCOMProto",
+  "name": "vcomproto",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "login.js",
   "scripts": {
     "runserver": "node ./src/server.js",
     "dev": "next dev",
