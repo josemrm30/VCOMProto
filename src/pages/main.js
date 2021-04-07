@@ -1,8 +1,11 @@
+import { Headfoot } from "../components/headfoot";
+
 const Main = () => {
     return(
-        <h1>Main To be continued</h1>
+        <Headfoot>
+            <h1>Main To be continued</h1>
+        </Headfoot>
     );
-
 };
 
 export default Main;
