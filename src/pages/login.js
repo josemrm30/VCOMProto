@@ -29,7 +29,7 @@ const Login = () => {
                                 </div>
                             </div>
                             <hr className="w-10/12 m-auto"></hr>
-                            <div classname=" h-1/6">
+                            <div className=" h-1/6">
                                 <p>New to the app?</p>
                             </div>
                         </div>
