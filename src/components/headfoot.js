@@ -5,9 +5,8 @@ export const Headfoot = ({ children }) => {
   return (
     <div>
       <NavBar/>
-      <div className="m-2">
+      <div className="flex">
         {children}
-        <div>Creado por Jose y Manu</div>
       </div>
       <script src="/public/js/particles.min.js"></script>
     </div>
