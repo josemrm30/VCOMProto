@@ -1,0 +1,35 @@
+#dropdown-menu:checked + #menu-movil {
+  display: block;
+}
+
+#sidebar-menu:checked + #sidebar-movil {
+  display: block;
+}
+
+#particles-js canvas {
+  display: block;
+  vertical-align: bottom;
+  -webkit-transform: scale(1);
+  -ms-transform: scale(1);
+  transform: scale(1);
+  opacity: 1;
+  -webkit-transition: opacity 0.8s ease, -webkit-transform 1.4s ease;
+  transition: opacity 0.8s ease, transform 1.4s ease;
+}
+
+#particles-js {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  z-index: -10;
+  top: 0;
+  left: 0;
+}
+
+.btn-black {
+  @apply inline bg-vcom-buttons px-10 py-2 my-3 text-xs font-semibold tracking-wider text-white rounded hover:bg-white hover:text-black;
+}
+
+.btn-black-inverted {
+  @apply inline bg-white px-10 py-2 my-3 text-xs font-semibold tracking-wider text-black rounded hover:bg-vcom-buttons hover:text-white;
+}
