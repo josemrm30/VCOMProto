@@ -16,7 +16,7 @@ const Login = () => {
                             <p className="text-4xl text-center font-bold text-black">LOGIN</p>
                             <hr className="mt-3 w-10/12 m-auto"></hr>
                             <div className="mt-3 h-full">
-                                <div className="px-12">
+                                <div className="px-12 md">
                                     <label className="text-xl font-medium">Username</label>
                                     <input type="text" className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" name="loginEmail" placeholder="Username" />
                                 </div>
@@ -29,7 +29,7 @@ const Login = () => {
                                 </div>
                             </div>
                             <hr className="w-10/12 m-auto"></hr>
-                            <div classname=" h-1/6">
+                            <div className=" h-1/6">
                                 <p>New to the app?</p>
                             </div>
                         </div>
