@@ -5,8 +5,6 @@ const Main = () => {
     return(
         <Headfoot>
             <SideBar />
-            <ChatContainer>
-            </ChatContainer>
         </Headfoot>
     );
 };
