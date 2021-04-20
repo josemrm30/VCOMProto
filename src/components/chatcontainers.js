@@ -1,10 +1,20 @@
+import { render } from "react-dom";
 import { MessageCard } from "../components/chatcards";
+
+export const ChatInputBox = () => {
+  return(
+    <div class="inline-flex mt-2 container-bg">
+      <textarea class="inline w-full"></textarea>
+      <button className="mx-3 btn-black inline">Send</button>
+    </div>
+  );
+}
 
 export const ChatContainer = ({ children }) => {
   return (
-    <div class="flex items-strech flex-col flex-1 border border-gray-900 mr-2 mt-2 p-1 overflow-auto">
-      <div className="inline-flex justify-center text-3xl border border-black">
-        <p className="flex-1 inline text-center mt-3"> Chatting with User1</p>
+    <div class="flex items-strech flex-col flex-1 mr-2 mt-2 p-1 overflow-auto">
+      <div className="inline-flex justify-center text-3xl container-bg">
+        <p className="flex-1 inline text-center mt-3 font-bold">Chatting with User1</p>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="inline h-10 w-10 mr-10 my-3 p-2 cursor-pointer bg-green-500 rounded-full hover:border-opacity-100 hover:bg-white border border-green-600 fill-current text-white hover:text-green-600"
@@ -19,7 +29,7 @@ export const ChatContainer = ({ children }) => {
           />
         </svg>
       </div>
-      <div className="border border-black">
+      <div className="mt-2 container-bg">
         <MessageCard
           username="User1"
           msg="Hello, wanna play some videogames later?"
@@ -51,10 +61,7 @@ export const ChatContainer = ({ children }) => {
           pp="https://image.freepik.com/vector-gratis/perfil-avatar-hombre-icono-redondo_24640-14044.jpg"
         />
       </div>
-      <div class="inline-flex mt-2">
-        <textarea class="inline w-full"></textarea>
-        <button className="ml-3 btn-black inline">Send</button>
-      </div>
+      <ChatInputBox/>
       {children}
     </div>
   );

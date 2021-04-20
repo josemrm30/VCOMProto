@@ -1,18 +1,16 @@
+import { Avatar } from "./avatar";
+
 export const UserChatCard = ({ username, lastmsg, pp, selected }) => {
   const isSelected = selected ? "bg-white" : "bg-gray-300";
   return (
     <>
       <div
         className={
-          "flex p-2 border-gray-300 rounded h-auto hover:bg-white cursor-pointer " +
+          "chat-card-dark " +
           isSelected
         }
       >
-        <img
-          class="inline object-cover w-11 h-11 mr-1 rounded-full"
-          src={pp}
-          alt="Profile image"
-        />
+        <Avatar className="inline" src={pp} />
         <div class="pl-2 overflow-hidden">
           <p className="font-semibold block">{username}</p>
           <p className="block truncate max-w-max">{lastmsg}</p>
@@ -34,7 +32,7 @@ export const GroupChatCard = ({
     <>
       <div
         className={
-          "flex p-2 border-gray-300 rounded h-auto hover:bg-white cursor-pointer " +
+          "chat-card-dark " +
           isSelected
         }
       >
@@ -55,11 +53,7 @@ export const MessageCard = ({ username, msg, pp }) => {
   return (
     <>
       <div className="flex p-2 rounded h-auto">
-        <img
-          class="inline object-cover w-11 h-11 mr-1 rounded-full"
-          src={pp}
-          alt="Profile image"
-        />
+        <Avatar src={pp}/>
         <div class="pl-2 overflow-hidden">
           <p className="font-semibold block">{username}</p>
           <p className="block truncate">{msg}</p>

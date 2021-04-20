@@ -1,6 +1,7 @@
 import { GroupChatCard, UserChatCard } from "./chatcards";
 
 export const SideBar = () => {
+
   return (
     <div class="inline-block">
       <label

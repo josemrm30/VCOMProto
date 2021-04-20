@@ -3,13 +3,13 @@ import {NavBar} from "./navbar";
 
 export const Headfoot = ({ children }) => {
   return (
-    <div>
+    <>
       <NavBar/>
-      <div className="flex">
+      <div className="flex h-full w-full">
         {children}
       </div>
       <script src="/public/js/particles.min.js"></script>
-    </div>
+    </>
 
   );
 };

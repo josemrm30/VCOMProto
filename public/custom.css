@@ -1,3 +1,9 @@
+body {
+  background-color: #23272A;
+  color: white;
+}
+
+
 #dropdown-menu:checked + #menu-movil {
   display: block;
 }
@@ -30,6 +36,17 @@
   @apply inline bg-vcom-buttons px-10 py-2 my-3 text-xs font-semibold tracking-wider text-white rounded hover:bg-white hover:text-black;
 }
 
+.container-bg {
+  background-color: #3E444B;
+}
+
+.chat-card-dark {
+  color: black;
+  @apply flex p-2 border-gray-300 rounded h-auto hover:bg-white cursor-pointer bg-gray-300;
+}
+
 .btn-black-inverted {
   @apply inline bg-white px-10 py-2 my-3 text-xs font-semibold tracking-wider text-black rounded hover:bg-vcom-buttons hover:text-white;
 }
+
+
