@@ -1,15 +1,14 @@
 import Link from "next/link";
-import {NavBar} from "./navbar";
+import { NavBar } from "./navbar";
+import {TitleIcon} from "./titleicon";
 
-export const Headfoot = ({ children }) => {
+export const Headfoot = (props) => {
   return (
     <>
-      <NavBar/>
-      <div className="flex h-full w-full">
-        {children}
-      </div>
+      <TitleIcon></TitleIcon>
+      <NavBar user={props.user} />
+      <div className="flex h-full w-full">{props.children}</div>
       <script src="/public/js/particles.min.js"></script>
     </>
-
   );
 };

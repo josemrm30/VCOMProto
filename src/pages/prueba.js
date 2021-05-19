@@ -1,3 +1,5 @@
+import {Component} from 'react';
+
 const Prueba = () => {
     return (
         <>

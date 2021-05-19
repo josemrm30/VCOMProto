@@ -1,15 +1,16 @@
 import { Avatar } from "./avatar";
 
-export const UserChatCard = ({ username, lastmsg, pp, selected }) => {
+export const UserChatCard = ({ username, lastmsg, pp, selected, onClick }) => {
   const isSelected = selected ? "bg-white" : "bg-gray-300";
   return (
-    <>
-      <div
-        className={
-          "chat-card-dark " +
-          isSelected
-        }
-      >
+    <li
+      className="mb-3"
+      onClick={() => {
+        console.log(username)
+        onClick()
+      }}
+    >
+      <div className={"chat-card-dark " + isSelected}>
         <Avatar className="inline" src={pp} />
         <div class="pl-2 overflow-hidden">
           <p className="font-semibold block">{username}</p>
@@ -17,7 +18,7 @@ export const UserChatCard = ({ username, lastmsg, pp, selected }) => {
         </div>
       </div>
       <hr className="my-3 w-10/12 m-auto border-gray-600" />
-    </>
+    </li>
   );
 };
 
@@ -30,12 +31,7 @@ export const GroupChatCard = ({
   const isSelected = selected ? "bg-white" : "bg-gray-300";
   return (
     <>
-      <div
-        className={
-          "chat-card-dark " +
-          isSelected
-        }
-      >
+      <div className={"chat-card-dark " + isSelected}>
         <div class="pl-2 overflow-hidden">
           <p className="font-semibold block truncate">{groupname}</p>
           <div>
@@ -53,7 +49,7 @@ export const MessageCard = ({ username, msg, pp }) => {
   return (
     <>
       <div className="flex p-2 rounded h-auto">
-        <Avatar src={pp}/>
+        <Avatar src={pp} />
         <div class="pl-2 overflow-hidden">
           <p className="font-semibold block">{username}</p>
           <p className="block truncate">{msg}</p>

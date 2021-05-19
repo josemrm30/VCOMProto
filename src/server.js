@@ -4,7 +4,7 @@
 const express = require("express");
 const next = require("next");
 const ws = require("ws");
-const uuid = require("node-uuid")
+const uuid = require("node-uuid");
 /**
  * Variables que guardan la instancia del server con express y puerto y el ws
  */
@@ -14,6 +14,20 @@ const server = express();
 const port = parseInt(process.env.PORT, 10) || 3000;
 const logged = false;
 const wss = new ws.Server({port: 8085});
+
+/**
+ * Pool para la BBDD
+ */
+ const table = 'user';
+
+ const pool = mysql.createPool({
+     host: "localhost",
+     user: "vcomdbuser",
+     password: "GQjsHCdwpinWvnqX",
+     database: "vcommult",
+ });
+
+
 wss.on("connection", (client) => {
   client.on("message", (e) => { //Al recibir un mensaje (e->evento)
       var data = JSON.parse(e) //Lo convierto a JSON

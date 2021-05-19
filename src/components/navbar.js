@@ -33,7 +33,7 @@ export const NavBarList = ({ elements }) => {
   );
 };
 
-export const NavBar = () => {
+export const NavBar = (props) => {
   const navArr = [
     new NavElement("/login", "Login"),
     new NavElement("/register", "Register"),
@@ -79,7 +79,7 @@ export const NavBar = () => {
         <NavBarList elements={navArr} />
         <div className="lg:flex lg:flex-1 lg:items-center lg:justify-end lg:w-auto inline-flex justify-center w-full">
           <Avatar src="https://image.freepik.com/vector-gratis/perfil-avatar-hombre-icono-redondo_24640-14044.jpg"/>
-          <p className="text-white inline lg:p-4 py-3 px-0">Username</p>
+          <p className="text-white inline lg:p-4 py-3 px-0">{props.user}</p>
         </div>
       </div>
     </header>

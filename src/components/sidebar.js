@@ -1,7 +1,6 @@
 import { GroupChatCard, UserChatCard } from "./chatcards";
 
-export const SideBar = () => {
-
+export const SideBar = (props) => {
   return (
     <div class="inline-block">
       <label
@@ -29,38 +28,20 @@ export const SideBar = () => {
         id="sidebar-movil"
       >
         <ul>
-          <li className="mb-3">
-            <UserChatCard
-              username="User1"
-              lastmsg="Helloaaaaaaaa"
-              pp="https://image.freepik.com/vector-gratis/perfil-avatar-hombre-icono-redondo_24640-14044.jpg"
-              selected={true}
-            />
-          </li>
-          <li className="mb-3">
-            <UserChatCard
-              username="User2"
-              lastmsg="How are you doing todayaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaasaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa?"
-              pp="https://image.freepik.com/vector-gratis/perfil-avatar-hombre-icono-redondo_24640-14044.jpg"
-              selected={false}
-            />
-          </li>
-          <li>
-            <UserChatCard
-              username="User3"
-              lastmsg="XD"
-              pp="https://image.freepik.com/vector-gratis/perfil-avatar-hombre-icono-redondo_24640-14044.jpg"
-              selected={false}
-            />
-          </li>
-          <li>
-            <GroupChatCard
-              groupname="Apple HQ"
-              lastmsg="aas"
-              lastmsgnick="Juanjo"
-              selected={false}
-            />
-          </li>
+          {Object.entries(props.users).map(([id, user]) => {
+            return (
+                <UserChatCard
+                  key={id}
+                  username={user}
+                  lastmsg="Helloaaaaaaaa"
+                  pp="https://image.freepik.com/vector-gratis/perfil-avatar-hombre-icono-redondo_24640-14044.jpg"
+                  selected={true}
+                  onClick={()=>{
+                    props.ononSideBarClick( user );
+                  }}
+                />
+            );
+          })}
         </ul>
       </div>
     </div>

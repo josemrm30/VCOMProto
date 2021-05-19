@@ -1,8 +1,11 @@
 import Image from "next/image";
 import Particles from "react-particles-js";
+import {TitleIcon} from "../components/titleicon";
+
 const Login = () => {
   return (
     <>
+      <TitleIcon></TitleIcon>
       <div className="flex h-screen justify-center items-center">
         <div className="flex w-1/3 m-auto justify-center shadow rounded-md h-3/4 bg-vcom-blue overflow-hidden">
           <form

@@ -1,10 +1,13 @@
 import Image from "next/image";
 import Particles from "react-particles-js";
+import {TitleIcon} from "../components/titleicon";
+
 const Register = () => {
   return (
     <>
+      <TitleIcon></TitleIcon>
       <div className="flex h-screen justify-center items-center">
-        <div className="flex w-1/3 m-auto justify-center shadow rounded-md h-3/4 bg-vcom-blue overflow-hidden">
+        <div className="flex w-1/3 m-auto justify-center shadow rounded-md bg-vcom-blue overflow-hidden">
           <form
             action="profile"
             method="POST"
@@ -23,11 +26,15 @@ const Register = () => {
                   VCOM
                 </p>
               </div>
-              <p className="text-4xl text-center font-bold text-black">REGISTER</p>
+              <p className="text-4xl text-center font-bold text-black">
+                REGISTER
+              </p>
               <hr className="mt-3 w-10/12 m-auto"></hr>
               <div className="mt-3 h-full">
                 <div className="px-12">
-                  <label for="username" className="text-xl font-medium">Username</label>
+                  <label for="username" className="text-xl font-medium">
+                    Username
+                  </label>
                   <input
                     type="text"
                     className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
@@ -36,7 +43,9 @@ const Register = () => {
                   />
                 </div>
                 <div className="px-12">
-                  <label for="email" className="text-xl font-medium">Email</label>
+                  <label for="email" className="text-xl font-medium">
+                    Email
+                  </label>
                   <input
                     type="text"
                     className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
@@ -45,7 +54,9 @@ const Register = () => {
                   />
                 </div>
                 <div className="px-12">
-                  <label for="password" className="text-xl font-medium">Password</label>
+                  <label for="password" className="text-xl font-medium">
+                    Password
+                  </label>
                   <input
                     type="password"
                     className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
@@ -54,7 +65,9 @@ const Register = () => {
                   />
                 </div>
                 <div className="px-12">
-                  <label for="confirmPwd" className="text-xl font-medium">Confirm password</label>
+                  <label for="confirmPwd" className="text-xl font-medium">
+                    Confirm password
+                  </label>
                   <input
                     type="password"
                     className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
@@ -63,7 +76,9 @@ const Register = () => {
                   />
                 </div>
                 <div className="px-12">
-                  <label for="bday" className="text-xl font-medium">Birth date</label>
+                  <label for="bday" className="text-xl font-medium">
+                    Birth date
+                  </label>
                   <input
                     type="date"
                     className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
