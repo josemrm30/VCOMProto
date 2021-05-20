@@ -9,6 +9,7 @@ export const ButtonCall = (props) => {
         console.log("Calling...");
         props.onClick();
       }}
+      hidden={props.calling}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -31,9 +32,12 @@ export const ButtonHangUp = (props) => {
   return (
     <button
       onClick={async () => {
-        console.log("Disconnecting...");
-        props.onClick();
+        if (props.calling) {
+          console.log("Disconnecting...");
+          props.onClick();
+        }
       }}
+      hidden={!props.calling}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -113,8 +117,14 @@ export const ChatContainer = (props) => {
           onClick={async () => {
             props.onCallButtonClick();
           }}
+          calling={props.calling}
         />
-        <ButtonHangUp/>
+        <ButtonHangUp
+          onClick={() => {
+            props.onHangUpButtonClick();
+          }}
+          calling={props.calling}
+        />
       </div>
       <ChatCams streams={props.streams} />
       <div className="mt-2 container-bg">

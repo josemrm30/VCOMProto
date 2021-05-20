@@ -30,16 +30,16 @@ export const SideBar = (props) => {
         <ul>
           {Object.entries(props.users).map(([id, user]) => {
             return (
-                <UserChatCard
-                  key={id}
-                  username={user}
-                  lastmsg="Helloaaaaaaaa"
-                  pp="https://image.freepik.com/vector-gratis/perfil-avatar-hombre-icono-redondo_24640-14044.jpg"
-                  selected={true}
-                  onClick={()=>{
-                    props.ononSideBarClick( user );
-                  }}
-                />
+              <UserChatCard
+                key={id}
+                username={user}
+                lastmsg="Helloaaaaaaaa"
+                pp="https://image.freepik.com/vector-gratis/perfil-avatar-hombre-icono-redondo_24640-14044.jpg"
+                selected={true}
+                onClick={() => {
+                  props.ononSideBarClick(user, id);
+                }}
+              />
             );
           })}
         </ul>
