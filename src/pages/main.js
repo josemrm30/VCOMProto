@@ -301,16 +301,8 @@ class Main extends Component {
 
 
   render() {
-    var aux;
-    if (typeof window !== 'undefined') {
-      aux = JSON.parse(window.localStorage.getItem("user")).name;
-    }
-    else {
-      aux = this.user;
-    }
-
     return (
-      <Headfoot user={aux}>
+      <Headfoot user={this.user}>
         <SideBar
           users={this.state.users}
           ononSideBarClick={(selectedChat, id) => {

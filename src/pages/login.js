@@ -36,6 +36,7 @@ const Login = () => {
   }
 
   const handleRegister = async (e) => {
+    e.preventDefault();
     window.location.href = 'http://' + window.location.host + '/register';
   }
 

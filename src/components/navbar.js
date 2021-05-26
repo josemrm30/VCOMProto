@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Avatar } from "./avatar";
+import { UserPart } from "./userPart";
 
 class NavElement {
   constructor(href, text) {
@@ -38,6 +39,15 @@ export const NavBar = (props) => {
     new NavElement("/main", "Main"),
     new NavElement("/friends", "Friends")
   ];
+
+  var aux;
+  if (typeof window !== 'undefined') {
+    aux = JSON.parse(window.localStorage.getItem("user")).name;
+  }
+  else {
+    aux = props.user;
+  }
+
   return (
     <header className="lg:px-16 px-6 bg-black flex flex-wrap items-center lg:py-0 py-2">
       <div className="lg:flex flex-1 lg:flex-initial justify-between items-center pr-16">
@@ -76,8 +86,9 @@ export const NavBar = (props) => {
       >
         <NavBarList elements={navArr} />
         <div className="lg:flex lg:flex-1 lg:items-center lg:justify-end lg:w-auto inline-flex justify-center w-full">
-          <Avatar src="https://image.freepik.com/vector-gratis/perfil-avatar-hombre-icono-redondo_24640-14044.jpg"/>
-          <p className="text-white inline lg:p-4 py-3 px-0">{props.user}</p>
+          <p className="text-white inline lg:p-4 py-3 px-0">{aux}</p>
+          <UserPart src="https://image.freepik.com/vector-gratis/perfil-avatar-hombre-icono-redondo_24640-14044.jpg" />
+
         </div>
       </div>
     </header>

@@ -194,6 +194,20 @@ server.get("/register", async (req, res, next) => {
   await checkLogin(req, res, next);
 });
 
+server.get("/logout", async (req, res, next) => {
+  const loged = req.cookies.token;
+  if (loged) {
+    const tokenOk = jsonwebtoken.verify(loged, jwtSecret);
+    if (tokenOk) {
+      res.clearCookie('token');
+      res.redirect("/login");
+    }
+  }
+  else {
+    next();
+  }
+});
+
 server.post("/login", async (req, res, next) => {
   await checkLogin(req, res, next);
   var email = req.body.email;
@@ -207,6 +221,7 @@ server.post("/login", async (req, res, next) => {
       var token = jsonwebtoken.sign({ validation }, jwtSecret, { expiresIn: expiration });
       res.cookie('token', token, { httpOnly: true });
       res.json({ token });
+      
     }
   }
   catch (err) {
