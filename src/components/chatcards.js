@@ -12,7 +12,7 @@ export const UserChatCard = ({ username, lastmsg, pp, selected, onClick }) => {
     >
       <div className={"chat-card-dark " + isSelected}>
         <Avatar className="inline" src={pp} />
-        <div class="pl-2 overflow-hidden">
+        <div className="pl-2 overflow-hidden">
           <p className="font-semibold block">{username}</p>
           <p className="block truncate max-w-max">{lastmsg}</p>
         </div>
@@ -32,7 +32,7 @@ export const GroupChatCard = ({
   return (
     <>
       <div className={"chat-card-dark " + isSelected}>
-        <div class="pl-2 overflow-hidden">
+        <div className="pl-2 overflow-hidden">
           <p className="font-semibold block truncate">{groupname}</p>
           <div>
             <p className="inline-block truncate font-medium">{lastmsgnick}</p>
@@ -50,7 +50,7 @@ export const MessageCard = ({ username, msg, pp }) => {
     <>
       <div className="flex p-2 rounded h-auto">
         <Avatar src={pp} />
-        <div class="pl-2 overflow-hidden">
+        <div className="pl-2 overflow-hidden">
           <p className="font-semibold block">{username}</p>
           <p className="block truncate">{msg}</p>
         </div>

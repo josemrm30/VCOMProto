@@ -1,106 +1,99 @@
 import Image from "next/image";
 import Particles from "react-particles-js";
-import {TitleIcon} from "../components/titleicon";
+import { TitleIcon } from "../components/titleicon";
 
 const Register = () => {
+
+  const handleBack = async (e) => {
+    window.location.href = 'http://' + window.location.host + '/login';
+  }
+
+
   return (
     <>
       <TitleIcon></TitleIcon>
       <div className="flex h-screen justify-center items-center">
         <div className="flex w-1/3 m-auto justify-center shadow rounded-md bg-vcom-blue overflow-hidden">
-          <form
-            action="profile"
-            method="POST"
-            className="mb-3 w-full"
-            id="formLogin"
-          >
+          <div className="mb-3 w-full" >
             <div className="mt-3 w-full">
               <div className="flex text-center items-center justify-center">
-                <Image
-                  src="/ondas.png"
-                  alt="Picture of the author"
-                  width={150}
-                  height={150}
-                />
-                <p className="text-4xl font-bold text-white filter drop-shadow-xl">
-                  VCOM
-                </p>
+                <Image src="/ondas.png" alt="Picture of the author" width={150} height={150} />
+                <p className="text-4xl font-bold text-white filter drop-shadow-xl">VCOM</p>
               </div>
               <p className="text-4xl text-center font-bold text-black">
                 REGISTER
               </p>
               <hr className="mt-3 w-10/12 m-auto"></hr>
-              <div className="mt-3 h-full">
-                <div className="px-12">
-                  <label for="username" className="text-xl font-medium">
-                    Username
+              <form action="profile" method="POST" className="w-full" id="formLogin" >
+                <div className="mt-3">
+                  <div className="px-12">
+                    <label htmlFor="username" className="text-xl font-medium">
+                      Username
                   </label>
-                  <input
-                    type="text"
-                    className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
-                    name="username"
-                    placeholder="Username"
-                  />
-                </div>
-                <div className="px-12">
-                  <label for="email" className="text-xl font-medium">
-                    Email
+                    <input
+                      type="text"
+                      className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
+                      name="username"
+                      placeholder="Username"
+                    />
+                  </div>
+                  <div className="px-12">
+                    <label htmlFor="email" className="text-xl font-medium">
+                      Email
                   </label>
-                  <input
-                    type="text"
-                    className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
-                    name="email"
-                    placeholder="Email"
-                  />
-                </div>
-                <div className="px-12">
-                  <label for="password" className="text-xl font-medium">
-                    Password
+                    <input
+                      type="text"
+                      className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
+                      name="email"
+                      placeholder="Email"
+                    />
+                  </div>
+                  <div className="px-12">
+                    <label htmlFor="password" className="text-xl font-medium">
+                      Password
                   </label>
-                  <input
-                    type="password"
-                    className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
-                    name="password"
-                    placeholder="Password"
-                  />
-                </div>
-                <div className="px-12">
-                  <label for="confirmPwd" className="text-xl font-medium">
-                    Confirm password
+                    <input
+                      type="password"
+                      className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
+                      name="password"
+                      placeholder="Password"
+                    />
+                  </div>
+                  <div className="px-12">
+                    <label htmlFor="confirmPwd" className="text-xl font-medium">
+                      Confirm password
                   </label>
-                  <input
-                    type="password"
-                    className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
-                    name="confirmPwd"
-                    placeholder="Confirm password"
-                  />
-                </div>
-                <div className="px-12">
-                  <label for="bday" className="text-xl font-medium">
-                    Birth date
+                    <input
+                      type="password"
+                      className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
+                      name="confirmPwd"
+                      placeholder="Confirm password"
+                    />
+                  </div>
+                  <div className="px-12">
+                    <label htmlFor="bday" className="text-xl font-medium">
+                      Birth date
                   </label>
-                  <input
-                    type="date"
-                    className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
-                    name="bday"
-                    placeholder="Bday"
-                  />
-                </div>
-                <div className="px-12 text-center h-full">
-                  <button type="button" className="btn-black">
-                    Register
+                    <input
+                      type="date"
+                      className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
+                      name="bday"
+                    />
+                  </div>
+                  <div className=" text-center">
+                    <button type="button" className="btn-black">
+                      Register
                   </button>
+                  </div>
                 </div>
-              </div>
-              <div className="h-1/6">
-                <div className="px-12 text-center h-full">
-                  <button type="button" className="btn-black-inverted">
-                    Go back
+              </form>
+              <div className=" text-center">
+                <button type="button" className="btn-black-inverted">
+                  Go back
                   </button>
-                </div>
               </div>
             </div>
-          </form>
+          </div>
         </div>
       </div>
       <Particles

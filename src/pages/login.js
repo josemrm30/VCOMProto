@@ -1,71 +1,98 @@
 import Image from "next/image";
 import Particles from "react-particles-js";
-import {TitleIcon} from "../components/titleicon";
+import { TitleIcon } from "../components/titleicon";
+import { useState } from "react";
+import jwtDecode from "jwt-decode";
 
 const Login = () => {
+  const [email, setEmail] = useState();
+  const [password, setPassword] = useState();
+
+  async function loginUser(credentials) {
+    return fetch('http://' + window.location.host + '/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(credentials)
+    })
+      .then((response) => {
+        return response.json();
+      });
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const user = await loginUser({
+      email,
+      password
+    });
+
+    var token = user.token;
+    var userData = jwtDecode(token).validation;
+
+    window.localStorage.setItem("user", JSON.stringify(userData));
+    window.location.href = 'http://' + window.location.host + '/main';
+  }
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    window.location.href = 'http://' + window.location.host + '/register';
+  }
+
   return (
     <>
       <TitleIcon></TitleIcon>
       <div className="flex h-screen justify-center items-center">
         <div className="flex w-1/3 m-auto justify-center shadow rounded-md h-3/4 bg-vcom-blue overflow-hidden">
-          <form
-            action="profile"
-            method="POST"
-            className="mb-3 w-full"
-            id="formLogin"
-          >
-            <div className="mt-3 w-full">
-              <div className="flex text-center items-center justify-center">
-                <Image
-                  src="/ondas.png"
-                  alt="Picture of the author"
-                  width={150}
-                  height={150}
-                />
-                <p className="text-4xl font-bold text-white filter drop-shadow-xl">
-                  VCOM
-                </p>
-              </div>
-              <p className="text-4xl text-center font-bold text-black">LOGIN</p>
-              <hr className="mt-3 w-10/12 m-auto"></hr>
+          <div className="mt-3 w-full">
+            <div className="flex text-center items-center justify-center">
+              <Image src="/ondas.png" alt="Picture of the author" width={150} height={150}/>
+              <p className="text-4xl font-bold text-white filter drop-shadow-xl">VCOM</p>
+            </div>
+            <p className="text-4xl text-center font-bold text-black">LOGIN</p>
+            <hr className="mt-3 w-10/12 m-auto"></hr>
+            <form className="mb-3 w-full" id="formLogin" onSubmit={handleSubmit}>
               <div className="mt-3 h-full">
                 <div className="px-12">
-                  <label className="text-xl font-medium">Username</label>
+                  <label htmlFor="loginEmail" className="text-xl font-medium">Email</label>
                   <input
-                    type="text"
-                    className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                    type="email"
+                    className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
+                    id="loginEmail"
                     name="loginEmail"
-                    placeholder="Username"
+                    placeholder="Email"
+                    onChange={e => setEmail(e.target.value)}
                   />
                 </div>
                 <div className="px-12">
-                  <label className="text-xl font-medium">Password</label>
-                  <input
-                    type="password"
-                    className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                  <label htmlFor="loginPassword" className="text-xl font-medium">Password</label>
+                  <input type="password" className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
+                    id="loginPassword"
                     name="loginPassword"
                     placeholder="Password"
+                    onChange={e => setPassword(e.target.value)}
                   />
                 </div>
                 <div className="px-12 text-center h-full">
-                  <button type="button" className="btn-black">
+                  <button type="submit" className="btn-black">
                     Login
                   </button>
                 </div>
               </div>
-              <hr className="w-10/12 m-auto" />
-              <div className="h-1/6">
-                <p className="mt-2 text-center font-bold text-black">
-                  New to the app?
+            </form>
+            <hr className="w-10/12 m-auto" />
+            <div className="h-1/6">
+              <p className="mt-2 text-center font-bold text-black">
+                New to the app?
                 </p>
-                <div className="px-12 text-center h-full">
-                  <button type="button" className="btn-black-inverted">
-                    Register
+              <div className="px-12 text-center h-full">
+                <button type="button" className="btn-black-inverted" onClick={handleRegister}>
+                  Register
                   </button>
-                </div>
               </div>
             </div>
-          </form>
+          </div>
         </div>
       </div>
       <Particles
