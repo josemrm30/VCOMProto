@@ -13,7 +13,7 @@ const withAuth = require("./middleware");
 //const routerServer = require("./routesServer");  //rutas modulares, continuar en el futuro.
 
 const jwtSecret = "probando12345";
-const expiration = "1d";
+const expiration = "2d";
 
 
 
@@ -179,10 +179,13 @@ async function checkLogin(req, res, next) {
   try {
     const loged = req.cookies.token;
     if (loged) {
-      const tokenOk = jsonwebtoken.verify(loged, jwtSecret);
+      const tokenOk = jsonwebtoken.verify(loged, jwtSecret, (err) => {
+        if (err) {
+          res.redirect("/logout");
+        }
+      });
       if (tokenOk) {
         res.redirect("/main");
-        res.end();
       }
       else {
         res.redirect("/unathorized");
@@ -191,9 +194,9 @@ async function checkLogin(req, res, next) {
     else {
       next();
     }
-  } 
+  }
   catch (err) {
-    throw err;
+    console.error(err);
   }
 }
 
@@ -216,16 +219,9 @@ server.get("/register", async (req, res, next) => {
 server.get("/logout", async (req, res, next) => {
   const loged = req.cookies.token;
   if (loged) {
-    const tokenOk = jsonwebtoken.verify(loged, jwtSecret);
-    if (tokenOk) {
-      res.clearCookie('token');
-      res.redirect("/login");
-      res.end();
-    }
+    res.clearCookie('token');
   }
-  else {
-    res.redirect("/unathorized");
-  }
+  res.redirect("/login");
 });
 
 server.post("/login", async (req, res, next) => {
