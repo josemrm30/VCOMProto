@@ -53,7 +53,7 @@ export const NavBar = (props) => {
       </div>
 
       <label
-        for="dropdown-menu"
+        htmlFor="dropdown-menu"
         className="point-cursor lg:hidden block bg-white"
       >
         <svg

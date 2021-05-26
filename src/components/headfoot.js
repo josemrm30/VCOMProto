@@ -8,7 +8,7 @@ export const Headfoot = (props) => {
       <TitleIcon></TitleIcon>
       <NavBar user={props.user} />
       <div className="flex h-full w-full">{props.children}</div>
-      <script src="/public/js/particles.min.js"></script>
+      <script type="text/javascript" src="/adapter.js"></script>
     </>
   );
 };

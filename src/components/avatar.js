@@ -4,7 +4,7 @@ export const Avatar = ({src, sizex, sizey}) => {
     const sizeY = sizey ? 'h-' + sizey : 'h-11';
     return(
         <img
-          class={"object-cover mr-1 rounded-full " + sizeX +" " + sizeY}
+          className={"object-cover mr-1 rounded-full " + sizeX +" " + sizeY}
           src={src}
           alt="Profile image"
         />

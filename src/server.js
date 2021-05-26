@@ -92,6 +92,11 @@ wss.on("connection", (client) => {
           conexiones[data.receiverid].send(e);
         }
         break;
+      case "hangup":
+        if(conexiones[data.receiverid]){
+          conexiones[data.receiverid].send(e);
+        }
+        break;
       case "rol":
         if (conexiones[data.receiverid]) {
           conexiones[data.receiverid].send(e);

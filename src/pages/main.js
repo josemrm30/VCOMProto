@@ -31,7 +31,7 @@ const config = {
  * STREAM RESTRICTIONS
  */
 const rest = {
-  audio: true,
+  audio: false,
   video: true,
 };
 
@@ -126,6 +126,16 @@ class Main extends Component {
       case "rol":
         this.polite = msg.polite;
         break;
+      case "hangup":
+        if (this.pc) {
+          //Si hay PC, es que no hemos colgado.
+          this.setState((prevState) => {
+            return {
+              streams: [prevState.streams[0]],
+            };
+          });
+        }
+        break;
       case "getID": //Si me acabo de conectar, habré pedido mi id. La recojo.
         this.id = msg.userid;
         var actualUsers = {};
@@ -202,7 +212,7 @@ class Main extends Component {
     }
 
     this.pc.ontrack = (e) => {
-      console.log("stream found ", e);
+      console.log("stream found ", e.streams);
       this.setState((prevState) => {
         return {
           streams: [...prevState.streams, e.streams[0]],
@@ -292,6 +302,13 @@ class Main extends Component {
         track.stop();
       });
     }
+    this.ws.send(
+      JSON.stringify({
+        tipo: "hangup",
+        senderid: this.id,
+        receiverid: this.state.id,
+      })
+    );
     this.setState({
       streams: [],
       calling: false,
