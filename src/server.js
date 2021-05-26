@@ -107,7 +107,7 @@ wss.on("connection", (client) => {
         }
         break;
       case "hangup":
-        if(conexiones[data.receiverid]){
+        if (conexiones[data.receiverid]) {
           conexiones[data.receiverid].send(e);
         }
         break;
@@ -143,21 +143,26 @@ async function authenticate(email, passwd) {
     const connection = await pool.getConnection();
 
     var [result, fields] = await connection.query(query, [email]);
-    connection.release();
-    userName = result[0].name;
-    userPasswdCr = result[0].passwdCr;
-    userEmail = result[0].email;
-    userBirthdate = result[0].birthdate;
-    const verified = bcrypt.compareSync(passwd, userPasswdCr);
-    if (verified) {
-      var response = {
-        name: userName,
-        email: userEmail,
-        birthdate: userBirthdate
-      };
+    connection.release(); // arreglar el caso de email incorrecto
+    if (result.length) {
+      userName = result[0].name;
+      userPasswdCr = result[0].passwdCr;
+      userEmail = result[0].email;
+      userBirthdate = result[0].birthdate;
+      const verified = bcrypt.compareSync(passwd, userPasswdCr);
+      if (verified) {
+        var response = {
+          name: userName,
+          email: userEmail,
+          birthdate: userBirthdate
+        };
+      }
+      else {
+        var response = { error: "The password is invalid." };
+      }
     }
     else {
-      var response = { error: "The password is invalid." };
+      var response = { error: "The email not exist." };
     }
     return response;
   }
@@ -171,15 +176,24 @@ async function authenticate(email, passwd) {
  */
 
 async function checkLogin(req, res, next) {
-  const loged = req.cookies.token;
-  if (loged) {
-    const tokenOk = jsonwebtoken.verify(loged, jwtSecret);
-    if (tokenOk) {
-      res.redirect("/main");
+  try {
+    const loged = req.cookies.token;
+    if (loged) {
+      const tokenOk = jsonwebtoken.verify(loged, jwtSecret);
+      if (tokenOk) {
+        res.redirect("/main");
+        res.end();
+      }
+      else {
+        res.redirect("/unathorized");
+      }
     }
-  }
-  else {
-    next();
+    else {
+      next();
+    }
+  } 
+  catch (err) {
+    throw err;
   }
 }
 
@@ -206,10 +220,11 @@ server.get("/logout", async (req, res, next) => {
     if (tokenOk) {
       res.clearCookie('token');
       res.redirect("/login");
+      res.end();
     }
   }
   else {
-    next();
+    res.redirect("/unathorized");
   }
 });
 
@@ -224,9 +239,10 @@ server.post("/login", async (req, res, next) => {
     }
     else {
       var token = jsonwebtoken.sign({ validation }, jwtSecret, { expiresIn: expiration });
+
       res.cookie('token', token, { httpOnly: true });
       res.json({ token });
-      
+
     }
   }
   catch (err) {
