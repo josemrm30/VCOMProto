@@ -5,7 +5,18 @@ const express = require("express");
 const next = require("next");
 const ws = require("ws");
 const uuid = require("node-uuid");
-const mysql = require("mysql");
+const mysql = require("mysql2/promise");
+const bcrypt = require("bcryptjs");
+const jsonwebtoken = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
+const withAuth = require("./middleware");
+//const routerServer = require("./routesServer");  //rutas modulares, continuar en el futuro.
+
+const jwtSecret = "probando12345";
+const expiration = "1d";
+
+
+
 /**
  * Variables que guardan la instancia del server con express y puerto y el ws
  */
@@ -16,10 +27,14 @@ const port = parseInt(process.env.PORT, 10) || 3000;
 const logged = false;
 const wss = new ws.Server({ port: 8085 });
 
+server.use(express.json());
+server.use(express.urlencoded({ extended: false }));
+server.use(cookieParser());
+
+
 /**
  * Pool para la BBDD
  */
-const table = "user";
 
 const pool = mysql.createPool({
   host: "localhost",
@@ -31,10 +46,10 @@ const pool = mysql.createPool({
 wss.on("connection", (client) => {
   client.on("message", (e) => {
     //Al recibir un mensaje (e->evento)
-    console.log("Nuevo mensaje --> " ,e, JSON.parse(e))
+    console.log("Nuevo mensaje --> ", e, JSON.parse(e))
     var data = JSON.parse(e);
     switch (
-      data.tipo //Según el tipo, hago algo.
+    data.tipo //Según el tipo, hago algo.
     ) {
       case "disconnect": //Si un usuario se desconecta cerramos su conexión y lo eliminamos de la lista de users online
         conexiones[data.userid].close();
@@ -50,8 +65,7 @@ wss.on("connection", (client) => {
           );
         });
         console.log(
-          `El usuario con id ${data.userid} se ha desconectado. (${
-            Object.keys(conexiones).length
+          `El usuario con id ${data.userid} se ha desconectado. (${Object.keys(conexiones).length
           })`
         );
         break;
@@ -112,20 +126,100 @@ const dev = process.env.NODE_ENV !== "production";
 const nextApp = next({ dev });
 const handle = nextApp.getRequestHandler();
 
+
+/**
+ * Funciones de la BBDD
+ */
+
+async function authenticate(email, passwd) {
+  try {
+    var userName, userPasswdCr, userEmail, userBirthdate;
+    var query = "SELECT name, passwdCr, email, birthdate FROM user WHERE email = ?";
+    const connection = await pool.getConnection();
+
+    var [result, fields] = await connection.query(query, [email]);
+    connection.release();
+    userName = result[0].name;
+    userPasswdCr = result[0].passwdCr;
+    userEmail = result[0].email;
+    userBirthdate = result[0].birthdate;
+    const verified = bcrypt.compareSync(passwd, userPasswdCr);
+    if (verified) {
+      var response = {
+        name: userName,
+        email: userEmail,
+        birthdate: userBirthdate
+      };
+    }
+    else {
+      var response = { error: "The password is invalid." };
+    }
+    return response;
+  }
+  catch (err) {
+    throw err;
+  }
+}
+
+/**
+ * Verificación si ya estás loggeado
+ */
+
+async function checkLogin(req, res, next) {
+  const loged = req.cookies.token;
+  if (loged) {
+    const tokenOk = jsonwebtoken.verify(loged, jwtSecret);
+    if (tokenOk) {
+      res.redirect("/main");
+    }
+  }
+  else {
+    next();
+  }
+}
+
 /**
  * Peticiones gestionadas por express
  */
-server.get("", (peticion, respuesta) => {
-  if (logged) {
-    return respuesta.redirect("/main");
-  } else {
-    return respuesta.redirect("/login");
+server.get("", (req, res) => {
+  return res.redirect("/login");
+});
+
+
+server.get("/login", async (req, res, next) => {
+  await checkLogin(req, res, next);
+});
+
+server.get("/register", async (req, res, next) => {
+  await checkLogin(req, res, next);
+});
+
+server.post("/login", async (req, res, next) => {
+  await checkLogin(req, res, next);
+  var email = req.body.email;
+  var passwd = req.body.password;
+  try {
+    var validation = await authenticate(email, passwd);
+    if (validation.error) {
+      console.error(validation.error);
+    }
+    else {
+      var token = jsonwebtoken.sign({ validation }, jwtSecret, { expiresIn: expiration });
+      res.cookie('token', token, { httpOnly: true });
+      res.json({ token });
+    }
+  }
+  catch (err) {
+    console.error(err)
   }
 });
 
-server.post("/main", (peticion, respuesta) => {
-  return respuesta.json("/register");
+
+server.get("/main", withAuth, (req, res, next) => {
+  next();
 });
+
+
 
 /**
  * Peticiones gestionadas por NextJS

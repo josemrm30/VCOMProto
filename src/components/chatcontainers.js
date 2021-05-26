@@ -99,8 +99,8 @@ export const ChatCams = (props) => {
 
 export const ChatInputBox = () => {
   return (
-    <div class="inline-flex mt-2 container-bg">
-      <textarea class="inline w-full"></textarea>
+    <div className="inline-flex mt-2 container-bg">
+      <textarea className="inline w-full"></textarea>
       <button className="mx-3 btn-black inline">Send</button>
     </div>
   );
@@ -108,7 +108,7 @@ export const ChatInputBox = () => {
 
 export const ChatContainer = (props) => {
   return (
-    <div class="flex items-strech flex-col flex-1 mr-2 mt-2 p-1 overflow-auto">
+    <div className="flex items-strech flex-col flex-1 mr-2 mt-2 p-1 overflow-auto">
       <div className="inline-flex justify-center text-3xl container-bg">
         <p className="flex-1 inline text-center mt-3 font-bold">
           Chatting with {props.chat}

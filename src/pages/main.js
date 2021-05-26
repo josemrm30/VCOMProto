@@ -65,6 +65,7 @@ class Main extends Component {
       calling: false,
     };
     this.user = "testuser" + Math.floor(Math.random() * 100);
+    //this.user = window.localStorage.getItem("user");
     this.makingSDPOffer = false;
     this.polite = false;
   }
@@ -145,7 +146,7 @@ class Main extends Component {
   }
 
   setupWS() {
-    this.ws = new WebSocket("ws://localhost:8085");
+    this.ws = new WebSocket("ws://" + window.location.hostname + ":8085");
     this.ws.addEventListener("open", (e) => {
       console.log("Conectado a ws server... ");
       this.ws.send(
@@ -298,9 +299,18 @@ class Main extends Component {
     });
   }
 
+
   render() {
+    var aux;
+    if (typeof window !== 'undefined') {
+      aux = JSON.parse(window.localStorage.getItem("user")).name;
+    }
+    else {
+      aux = this.user;
+    }
+
     return (
-      <Headfoot user={this.user}>
+      <Headfoot user={aux}>
         <SideBar
           users={this.state.users}
           ononSideBarClick={(selectedChat, id) => {

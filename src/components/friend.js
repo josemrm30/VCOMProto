@@ -2,7 +2,7 @@ import { Avatar } from "./avatar";
 
 export const FriendRequestTextBox = () => {
     return(
-        <div class="flex-1 mt-2">
+        <div className="flex-1 mt-2">
             <input type="text" className="text-black" placeholder="Enter user ID..."></input>
             <button className="ml-3 inline btn-black-inverted">Send!</button>
         </div>
@@ -13,11 +13,11 @@ export const FriendElement = ({ pp, text }) => {
   return (
     <div className="flex p-1 my-1">
       <Avatar src={pp} sizex="12" sizey="12" />
-      <div class="flex-1 pl-2 overflow-hidden">
+      <div className="flex-1 pl-2 overflow-hidden">
         <p className="font-semibold text-2xl block">TestUser</p>
         <p className="block truncate text-xl max-w-max">{text}</p>
       </div>
-      <div class="inline-flex">
+      <div className="inline-flex">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="inline h-10 w-10 mr-5 p-2 cursor-pointer bg-green-500 rounded-full hover:border-opacity-100 hover:bg-white border border-green-600 fill-current text-white hover:text-green-600"

@@ -2,9 +2,9 @@ import { GroupChatCard, UserChatCard } from "./chatcards";
 
 export const SideBar = (props) => {
   return (
-    <div class="inline-block">
+    <div className="inline-block">
       <label
-        for="sidebar-menu"
+        htlmfor="sidebar-menu"
         className="point-cursor lg:hidden block bg-white"
       >
         <svg

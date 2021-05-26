@@ -35,8 +35,6 @@ export const NavBarList = ({ elements }) => {
 
 export const NavBar = (props) => {
   const navArr = [
-    new NavElement("/login", "Login"),
-    new NavElement("/register", "Register"),
     new NavElement("/main", "Main"),
     new NavElement("/friends", "Friends")
   ];
@@ -53,7 +51,7 @@ export const NavBar = (props) => {
       </div>
 
       <label
-        for="dropdown-menu"
+        htlmfor="dropdown-menu"
         className="point-cursor lg:hidden block bg-white"
       >
         <svg

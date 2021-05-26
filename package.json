@@ -15,20 +15,28 @@
   "license": "ISC",
   "dependencies": {
     "@tailwindcss/forms": "^0.3.2",
+    "axios": "^0.21.1",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
     "esm": "^3.2.25",
     "express": "^4.17.1",
+    "express-jwt": "^6.0.0",
+    "jsonwebtoken": "^8.5.1",
+    "jwt-decode": "^3.1.2",
     "mysql": "^2.18.1",
-    "next": "^10.1.2",
+    "mysql2": "^2.2.5",
+    "next": "^10.2.2",
     "node-uuid": "^1.4.8",
     "npx": "^10.2.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-particles-js": "^3.4.1",
-    "ws": "^7.4.4"
+    "ws": "^7.4.5"
   },
   "devDependencies": {
     "autoprefixer": "^10.2.5",
-    "postcss": "^8.2.9",
-    "tailwindcss": "^2.1.1"
+    "postcss": "^8.3.0",
+    "tailwindcss": "^2.1.2"
   }
 }
