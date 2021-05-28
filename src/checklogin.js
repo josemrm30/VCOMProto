@@ -1,4 +1,5 @@
 const jsonwebtoken = require('jsonwebtoken');
+const { redirect } = require('next/dist/next-server/server/api-utils');
 const jwtSecret = "probando12345";
 
 
@@ -10,7 +11,18 @@ const checkLogin = function (req, res, next) {
             next();
         }
         else {
-            next();
+            if (req.path.startsWith("/login") || req.path.startsWith("/register")) {
+                const loged = req.cookies.token || "";
+                if (loged) {
+                    return res.redirect("/main");
+                }
+                else{
+                    next();
+                }
+            }
+            else {
+                next();
+            }
         }
     }
     catch (err) {

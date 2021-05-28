@@ -1,8 +1,84 @@
 import Image from "next/image";
+import { useState, useEffect } from "react";
 import Particles from "react-particles-js";
 import { TitleIcon } from "../components/titleicon";
+import jwtDecode from "jwt-decode";
 
 const Register = () => {
+
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [birthdate, setBirthdate] = useState("");
+  var auxDate;
+  var maxDate;
+
+  useEffect(() => {
+    auxDate = new Date();
+    auxDate.setFullYear(auxDate.getFullYear() - 14);
+    maxDate = auxDate.toLocaleDateString('es-ES');
+  });
+
+  async function checkPassword(registerPasswd) {
+    var passw = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.:(),;])[A-Za-z\d@$!%*?&.:(),;]{7,25}$/;
+    return registerPasswd.match(passw);
+  }
+
+  async function registerUser(credentials) {
+    return fetch('http://' + window.location.host + '/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(credentials)
+    })
+      .then((response) => {
+        return response.json();
+      });
+  }
+
+  async function validateRegister() {
+    var valid = true;
+    if (username.length < 5) {
+      valid = false;
+    }
+    if (email.length < 5) {
+      valid = false;
+    }
+    if (!checkPassword(password)) {
+      valid = false;
+    }
+    if (confirmPassword != password || !checkPassword(password)) {
+      valid = false;
+    }
+    if (birthdate > maxDate) {
+      valid = false;
+    }
+    return valid;
+  }
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    var valid = await validateRegister();
+    if (valid) {
+      var userData = {
+        username,
+        email,
+        password,
+        birthdate
+      }
+
+      const user = await registerUser(userData);
+
+      var token = user.token;
+      userData = jwtDecode(token).validation;
+
+      window.localStorage.setItem("user", JSON.stringify(userData));
+      window.location.href = 'http://' + window.location.host + '/main';
+    }
+  }
+
 
   const handleBack = async (e) => {
     window.location.href = 'http://' + window.location.host + '/login';
@@ -27,68 +103,78 @@ const Register = () => {
               <form action="profile" method="POST" className="w-full" id="formLogin" >
                 <div className="mt-3">
                   <div className="px-12">
-                    <label htmlFor="username" className="text-xl font-medium">
+                    <label htmlFor="registerUsername" className="text-xl font-medium">
                       Username
-                  </label>
+                    </label>
                     <input
                       type="text"
                       className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
-                      name="username"
+                      name="registerUsername"
+                      id="registerUsername"
                       placeholder="Username"
+                      onChange={e => setUsername(e.target.value)}
                     />
                   </div>
                   <div className="px-12">
-                    <label htmlFor="email" className="text-xl font-medium">
+                    <label htmlFor="registerEmail" className="text-xl font-medium">
                       Email
-                  </label>
+                    </label>
                     <input
                       type="text"
                       className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
-                      name="email"
+                      name="registerEmail"
+                      id="registerEmail"
                       placeholder="Email"
+                      onChange={e => setEmail(e.target.value)}
                     />
                   </div>
                   <div className="px-12">
-                    <label htmlFor="password" className="text-xl font-medium">
+                    <label htmlFor="registerPassword" className="text-xl font-medium">
                       Password
-                  </label>
+                    </label>
                     <input
                       type="password"
                       className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
-                      name="password"
+                      name="registerPassword"
+                      id="registerPassword"
                       placeholder="Password"
+                      onChange={e => setPassword(e.target.value)}
                     />
                   </div>
                   <div className="px-12">
-                    <label htmlFor="confirmPwd" className="text-xl font-medium">
+                    <label htmlFor="registerConfirmPwd" className="text-xl font-medium">
                       Confirm password
-                  </label>
+                    </label>
                     <input
                       type="password"
                       className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
-                      name="confirmPwd"
+                      name="registerConfirmPwd"
+                      id="registerConfirmPwd"
                       placeholder="Confirm password"
+                      onChange={e => setConfirmPassword(e.target.value)}
                     />
                   </div>
                   <div className="px-12">
-                    <label htmlFor="bday" className="text-xl font-medium">
+                    <label htmlFor="registerBday" className="text-xl font-medium">
                       Birth date
-                  </label>
+                    </label>
                     <input
                       type="date"
                       className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
-                      name="bday"
+                      name="registerBday"
+                      id="registerBday"
+                      onChange={e => setBirthdate(e.target.value)}
                     />
                   </div>
                   <div className=" text-center">
-                    <button type="button" className="btn-black">
+                    <button type="button" className="btn-black" onClick={handleRegister}>
                       Register
                   </button>
                   </div>
                 </div>
               </form>
               <div className=" text-center">
-                <button type="button" className="btn-black-inverted">
+                <button type="button" className="btn-black-inverted" onClick={handleBack}>
                   Go back
                   </button>
               </div>

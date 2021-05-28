@@ -67,7 +67,7 @@ async function authenticate(email, passwd) {
     const connection = await pool.getConnection();
 
     var [result, fields] = await connection.query(query, [email]);
-    connection.release(); // arreglar el caso de email incorrecto
+    connection.release();
     if (result.length) {
       userName = result[0].name;
       userPasswdCr = result[0].passwdCr;
@@ -88,6 +88,30 @@ async function authenticate(email, passwd) {
     else {
       var response = { error: "The email not exist." };
     }
+    return response;
+  }
+  catch (err) {
+    var response = { error: "The username or email already exist" };
+    return response;
+  }
+}
+
+async function signup(username, email, passwd, bday) {
+  try {
+    var query = "INSERT INTO user VALUES (?, ?, ?, ?)";
+    const connection = await pool.getConnection();
+
+    var passwdCr = bcrypt.hashSync(passwd, 10);
+    var response = {};
+    await connection.query(query, [username, passwdCr, email, bday]);
+    connection.release();
+
+    var response = {
+      name: username,
+      email: email,
+      birthdate: bday
+    };
+    console.log("probando" + response);
     return response;
   }
   catch (err) {
@@ -116,6 +140,29 @@ server.post("/login", checkLogin, async (req, res, next) => {
       res.cookie('token', token, { httpOnly: true });
       res.json({ token });
 
+    }
+  }
+  catch (err) {
+    console.error(err)
+  }
+});
+
+server.post("/register", checkLogin, async (req, res, next) => {
+  var username = req.body.username;
+  var email = req.body.email;
+  var passwd = req.body.password;
+  var bdate = req.body.birthdate;
+  try {
+    var validation = await signup(username, email, passwd, bdate);
+    console.log("probando2" + validation);
+    if (validation.error) {
+      console.error(validation.error);
+    }
+    else {
+      var token = jsonwebtoken.sign({ validation }, jwtSecret, { expiresIn: expiration });
+
+      res.cookie('token', token, { httpOnly: true });
+      res.json({ token });
     }
   }
   catch (err) {
