@@ -1,6 +1,6 @@
-import { Headfoot } from "../components/headfoot";
-import { SideBar } from "../components/sidebar";
-import { ChatContainer } from "../components/chatcontainers";
+import { Headfoot } from "../../components/headfoot";
+import { SideBar } from "../../components/sidebar";
+import { ChatContainer } from "../../components/chatcontainers";
 import { Component } from "react";
 
 const config = {

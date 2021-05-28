@@ -37,7 +37,7 @@ export const NavBarList = ({ elements }) => {
 export const NavBar = (props) => {
   const navArr = [
     new NavElement("/main", "Main"),
-    new NavElement("/friends", "Friends")
+    new NavElement("/main/friends", "Friends")
   ];
 
   var aux;

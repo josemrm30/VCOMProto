@@ -1,5 +1,5 @@
-import { FriendElement, FriendRequestTextBox } from "../components/friend";
-import { Headfoot } from "../components/headfoot";
+import { FriendElement, FriendRequestTextBox } from "../../components/friend";
+import { Headfoot } from "../../components/headfoot";
 
 
 const Friends = () => {

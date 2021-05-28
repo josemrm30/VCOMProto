@@ -3,34 +3,39 @@
  */
 const express = require("express");
 const next = require("next");
-const ws = require("ws");
-const uuid = require("node-uuid");
 const mysql = require("mysql2/promise");
 const bcrypt = require("bcryptjs");
 const jsonwebtoken = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
-const withAuth = require("./middleware");
+const checkLogin = require("./checklogin");
+const websocket = require("./websocket");
 //const routerServer = require("./routesServer");  //rutas modulares, continuar en el futuro.
 
 const jwtSecret = "probando12345";
-const expiration = "2d";
-
-
+const expiration = "1d";
 
 /**
  * Variables que guardan la instancia del server con express y puerto y el ws
  */
-var conexiones = {}; //Diccionario [String (user id): Socket (client)]
-var users = {};
+
 const server = express();
 const port = parseInt(process.env.PORT, 10) || 3000;
-const logged = false;
-const wss = new ws.Server({ port: 8085 });
+
+websocket();
 
 server.use(express.json());
 server.use(express.urlencoded({ extended: false }));
 server.use(cookieParser());
 
+server.get("/logout", async (req, res, next) => {
+  const loged = req.cookies.token;
+  if (loged) {
+    res.clearCookie('token');
+  }
+  return res.redirect("/login");
+});
+
+server.use(checkLogin);
 
 /**
  * Pool para la BBDD
@@ -41,87 +46,6 @@ const pool = mysql.createPool({
   user: "vcomdbuser",
   password: "GQjsHCdwpinWvnqX",
   database: "vcommult",
-});
-
-wss.on("connection", (client) => {
-  client.on("message", (e) => {
-    //Al recibir un mensaje (e->evento)
-    console.log("Nuevo mensaje --> ", e, JSON.parse(e))
-    var data = JSON.parse(e);
-    switch (
-    data.tipo //Según el tipo, hago algo.
-    ) {
-      case "disconnect": //Si un usuario se desconecta cerramos su conexión y lo eliminamos de la lista de users online
-        conexiones[data.userid].close();
-        delete conexiones[data.userid];
-        delete users[data.userid];
-        Object.keys(conexiones).forEach((id) => {
-          //Además, lo notificamos a los demás
-          conexiones[id].send(
-            JSON.stringify({
-              tipo: "useroffline",
-              userid: data.userid,
-            })
-          );
-        });
-        console.log(
-          `El usuario con id ${data.userid} se ha desconectado. (${Object.keys(conexiones).length
-          })`
-        );
-        break;
-      case "username": //Nuevo usuario. Generamos su uid y se lo notificamos al resto.
-        client.username = data.contenido;
-        client.id = uuid.v4();
-        users[client.id] = data.contenido;
-        console.log(
-          "Nuevo cliente, ID: " + client.id + ". Username: " + client.username
-        );
-        client.send(
-          JSON.stringify({
-            //Le doy al nuevo user su id y la lista de users online
-            tipo: "getID",
-            userid: client.id,
-            listausers: users,
-          })
-        );
-        Object.keys(conexiones).forEach((id) => {
-          //Notifico a los demás el nuevo miembro.
-          conexiones[id].send(
-            JSON.stringify({
-              tipo: "useronline",
-              username: client.username,
-              userid: client.id,
-            })
-          );
-        });
-        conexiones[client.id] = client;
-        break;
-      case "icecandidate": //Pasamos al usuario con id "send" el ice candidate.
-        if (conexiones[data.receiverid]) {
-          conexiones[data.receiverid].send(e);
-        }
-        break;
-      case "sdp":
-        if (conexiones[data.receiverid]) {
-          conexiones[data.receiverid].send(e);
-        }
-        break;
-      case "hangup":
-        if (conexiones[data.receiverid]) {
-          conexiones[data.receiverid].send(e);
-        }
-        break;
-      case "rol":
-        if (conexiones[data.receiverid]) {
-          conexiones[data.receiverid].send(e);
-        }
-        break;
-      default:
-        //El server no entiende el tipo de mensaje y no puede hacer nada. F
-        console.log("No se ha entendido el tipo de mensaje: " + data.tipo);
-        break;
-    }
-  });
 });
 
 /**
@@ -172,60 +96,13 @@ async function authenticate(email, passwd) {
 }
 
 /**
- * Verificación si ya estás loggeado
- */
-
-async function checkLogin(req, res, next) {
-  try {
-    const loged = req.cookies.token;
-    if (loged) {
-      const tokenOk = jsonwebtoken.verify(loged, jwtSecret, (err) => {
-        if (err) {
-          res.redirect("/logout");
-        }
-      });
-      if (tokenOk) {
-        res.redirect("/main");
-      }
-      else {
-        res.redirect("/unathorized");
-      }
-    }
-    else {
-      next();
-    }
-  }
-  catch (err) {
-    console.error(err);
-  }
-}
-
-/**
  * Peticiones gestionadas por express
  */
 server.get("", (req, res) => {
   return res.redirect("/login");
 });
 
-
-server.get("/login", async (req, res, next) => {
-  await checkLogin(req, res, next);
-});
-
-server.get("/register", async (req, res, next) => {
-  await checkLogin(req, res, next);
-});
-
-server.get("/logout", async (req, res, next) => {
-  const loged = req.cookies.token;
-  if (loged) {
-    res.clearCookie('token');
-  }
-  res.redirect("/login");
-});
-
-server.post("/login", async (req, res, next) => {
-  await checkLogin(req, res, next);
+server.post("/login", checkLogin, async (req, res, next) => {
   var email = req.body.email;
   var passwd = req.body.password;
   try {
@@ -245,13 +122,6 @@ server.post("/login", async (req, res, next) => {
     console.error(err)
   }
 });
-
-
-server.get("/main", withAuth, (req, res, next) => {
-  next();
-});
-
-
 
 /**
  * Peticiones gestionadas por NextJS
