@@ -27,7 +27,7 @@ export const NavBarList = ({ elements }) => {
     <nav>
       <ul className="lg:flex items-center justify-between text-base text-white pt-4 lg:pt-0">
         {elements.map((element) => (
-          <NavBarItem href={element.href} text={element.text} />
+          <NavBarItem key={element.text} href={element.href} text={element.text} />
         ))}
       </ul>
     </nav>

@@ -2,6 +2,9 @@ import { Headfoot } from "../../components/headfoot";
 import { SideBar } from "../../components/sidebar";
 import { ChatContainer } from "../../components/chatcontainers";
 import { Component } from "react";
+import do_query from "../../api/db";
+import Chat from "../../utils/chat";
+import ChatEntry from "../../utils/chat_entry";
 
 const config = {
   iceServers: [
@@ -46,25 +49,16 @@ const sdprest = {
   },
 };
 
-class Chat {
-  constructor() {
-    this.username = null;
-    this.userid = null;
-    this.msgs = [];
-  }
-}
-
 class Main extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      users: [],
-      chat: null,
-      id: null,
+      chats: props.chats,
+      actualChat: null,
       streams: [],
       calling: false,
     };
-    this.user = "testuser" + Math.floor(Math.random() * 100);
+    this.user = props.username;
     //this.user = window.localStorage.getItem("user");
     this.makingSDPOffer = false;
     this.polite = false;
@@ -96,14 +90,14 @@ class Main extends Component {
           await this.pc.setLocalDescription();
           console.log("Envio SDP 2: ", {
             tipo: "sdp",
-            senderid: this.id,
+            senderid: this.user,
             receiverid: msg.senderid,
             descripcion: this.pc.localDescription,
           });
           this.ws.send(
             JSON.stringify({
               tipo: "sdp",
-              senderid: this.id,
+              senderid: this.user,
               receiverid: msg.senderid,
               descripcion: this.pc.localDescription,
             })
@@ -111,6 +105,7 @@ class Main extends Component {
         }
         break;
       case "useroffline": //Si un usuario se desconecta, actualizo la lista
+        return;
         this.setState((prevState) => {
           var newUsers = prevState.users;
           delete newUsers[msg.userid];
@@ -118,6 +113,7 @@ class Main extends Component {
         });
         break;
       case "useronline": //Si un usuario se conecta, actualizo la lista
+        return;
         this.setState((prevState) => {
           var userAux = prevState.users;
           userAux[msg.userid] = msg.username;
@@ -137,20 +133,30 @@ class Main extends Component {
           });
         }
         break;
-      case "getID": //Si me acabo de conectar, habré pedido mi id. La recojo.
-        this.id = msg.userid;
-        var actualUsers = {};
-        Object.keys(msg.listausers).forEach((id) => {
-          //Además, creo la lista de usuarios conectados.
-          actualUsers[id] = msg.listausers[id];
-        });
-        this.setState({
-          users: actualUsers,
-        });
-
-        //Deshabilita el botón para iniciar una nueva conexión, y la textbox para introducir
-        //el username. Guardo mi id.
-        console.log("Tengo mi id: " + this.id);
+      case "chatmsg":
+        var chatid = msg.chatid;
+        var sender = msg.senderid;
+        var newchats = { ...this.state.chats };
+        console.log(newchats);
+        var chat = newchats[chatid];
+        console.log(chat);
+        chat.msgs.push(new ChatEntry(1, chatid, sender, msg.message));
+        this.setState(
+          (prevState) => {
+            return {
+              chats: newchats,
+            };
+          },
+          () => {
+            if (this.state.actualChat) {
+              this.setState((prevState) => {
+                return {
+                  actualChat: prevState.chats[prevState.actualChat.id],
+                };
+              });
+            }
+          }
+        );
         break;
     }
   }
@@ -178,7 +184,7 @@ class Main extends Component {
     if (this.ws) {
       const msgdc = {
         tipo: "disconnect",
-        userid: this.id,
+        userid: this.user,
       };
       console.log(JSON.stringify(msgdc));
       this.ws.send(JSON.stringify(msgdc));
@@ -197,10 +203,9 @@ class Main extends Component {
     });
   }
 
-  onSideBarClick(selectedchat, selid) {
+  onSideBarClick(selectedchat) {
     this.setState({
-      chat: selectedchat,
-      id: selid,
+      actualChat: selectedchat,
     });
   }
 
@@ -211,6 +216,14 @@ class Main extends Component {
     for (const track of localStream.getTracks()) {
       this.pc.addTrack(track, localStream);
     }
+
+    this.ws.send(
+      JSON.stringify({
+        tipo: "rol",
+        receiverid: this.state.actualChat.username,
+        polite: !this.polite,
+      })
+    );
 
     this.pc.ontrack = (e) => {
       console.log("stream found ", e.streams);
@@ -228,15 +241,15 @@ class Main extends Component {
         await this.pc.setLocalDescription();
         console.log({
           tipo: "sdp",
-          senderid: this.id,
-          receiverid: this.state.id,
+          senderid: this.user,
+          receiverid: this.state.actualChat.username,
           descripcion: this.pc.localDescription,
         });
         this.ws.send(
           JSON.stringify({
             tipo: "sdp",
-            senderid: this.id,
-            receiverid: this.state.id,
+            senderid: this.user,
+            receiverid: this.state.actualChat.username,
             descripcion: this.pc.localDescription,
           })
         );
@@ -251,15 +264,15 @@ class Main extends Component {
       if (candidate) {
         console.log({
           tipo: "icecandidate",
-          senderid: this.id,
-          receiverid: this.state.id,
+          senderid: this.user,
+          receiverid: this.state.actualChat.username,
           icecandidate: candidate,
         });
         this.ws.send(
           JSON.stringify({
             tipo: "icecandidate",
-            senderid: this.id,
-            receiverid: this.state.id,
+            senderid: this.user,
+            receiverid: this.state.actualChat.username,
             icecandidate: candidate,
           })
         );
@@ -283,18 +296,12 @@ class Main extends Component {
 
   async onCallButtonClick() {
     try {
-      this.ws.send(
-        JSON.stringify({
-          tipo: "rol",
-          receiverid: this.state.id,
-          polite: !this.polite,
-        })
-      );
       await this.configPeerConnection();
     } catch (err) {
-      console.log("USER DENIED USER MEDIA");
+      console.log(err);
     }
   }
+
   onHangUpButtonClick() {
     this.pc.close();
     this.pc = null;
@@ -306,8 +313,8 @@ class Main extends Component {
     this.ws.send(
       JSON.stringify({
         tipo: "hangup",
-        senderid: this.id,
-        receiverid: this.state.id,
+        senderid: this.user,
+        receiverid: this.state.actualChat.username,
       })
     );
     this.setState({
@@ -316,19 +323,45 @@ class Main extends Component {
     });
   }
 
+  onSendMessageClick(msg) {
+    console.log({
+      tipo: "chatmsg",
+      chatid: this.state.actualChat.id,
+      senderid: this.user,
+      receiverid: this.state.actualChat.username,
+      message: msg,
+    });
+    this.ws.send(
+      JSON.stringify({
+        tipo: "chatmsg",
+        chatid: this.state.actualChat.id,
+        senderid: this.user,
+        receiverid: this.state.actualChat.username,
+        message: msg,
+      })
+    );
+    var newchats = { ...this.state.chats };
+    var chat = newchats[this.state.actualChat.id];
+    chat.msgs.push(
+      new ChatEntry(new Date(), this.state.actualChat.id, this.user, msg)
+    );
+    this.setState({
+      chats: newchats,
+    });
+  }
 
   render() {
     return (
       <Headfoot user={this.user}>
         <SideBar
-          users={this.state.users}
-          ononSideBarClick={(selectedChat, id) => {
-            this.onSideBarClick(selectedChat, id);
+          chats={this.state.chats}
+          ononSideBarClick={(selectedChat) => {
+            this.onSideBarClick(selectedChat);
           }}
         />
-        {this.state.chat && (
+        {this.state.actualChat && (
           <ChatContainer
-            chat={this.state.chat}
+            chat={this.state.actualChat}
             streams={this.state.streams}
             calling={this.state.calling}
             onCallButtonClick={async () => {
@@ -337,9 +370,12 @@ class Main extends Component {
             onHangUpButtonClick={() => {
               this.onHangUpButtonClick();
             }}
+            onSendMessageClick={(msg) => {
+              this.onSendMessageClick(msg);
+            }}
           />
         )}
-        {!this.state.chat && (
+        {!this.state.actualChat && (
           <>
             <h2 className="text-xl">
               Create a new conversation or click on a recent one
@@ -350,4 +386,49 @@ class Main extends Component {
     );
   }
 }
+
+export async function getServerSideProps(context) {
+  const { req, res } = context;
+  try {
+    const chats = await do_query({
+      query: "SELECT * FROM chat_user WHERE user = ?",
+      values: [req.cookies.username],
+    });
+
+    var chatsdic = {};
+    for (const elem in chats) {
+      const chatID = chats[elem].chat;
+      const [peers, fields] = await do_query({
+        query: "SELECT * FROM chat_user WHERE chat = ? AND user <> ?",
+        values: [chatID, req.cookies.username],
+      });
+
+      const msgs = await do_query({
+        query: "SELECT * FROM chat_entry WHERE chat = ?",
+        values: [chatID],
+      });
+
+      var msgsarr = [];
+      for (const elem in msgs) {
+        msgsarr.push(
+          new ChatEntry(
+            msgs[elem].id,
+            chatID,
+            msgs[elem].user,
+            msgs[elem].content
+          )
+        );
+      }
+      chatsdic[chatID] = new Chat(chatID, peers.user, msgsarr);
+    }
+    console.log(chatsdic);
+    var chatsdiscparsed = JSON.parse(JSON.stringify(chatsdic)); //Hay que hacerlo porque si no NextJS se queja (si, es un poco inutil)
+    return {
+      props: { username: req.cookies.username, chats: chatsdiscparsed },
+    };
+  } catch (err) {
+    console.log(err);
+  }
+}
+
 export default Main;

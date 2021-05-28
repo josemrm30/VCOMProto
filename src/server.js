@@ -28,9 +28,10 @@ server.use(express.urlencoded({ extended: false }));
 server.use(cookieParser());
 
 server.get("/logout", async (req, res, next) => {
-  const loged = req.cookies.token;
-  if (loged) {
-    res.clearCookie('token');
+  const logged = req.cookies.token;
+  if (logged) {
+    res.clearCookie("token");
+    res.clearCookie("username");
   }
   return res.redirect("/login");
 });
@@ -55,7 +56,6 @@ const dev = process.env.NODE_ENV !== "production";
 const nextApp = next({ dev });
 const handle = nextApp.getRequestHandler();
 
-
 /**
  * Funciones de la BBDD
  */
@@ -63,7 +63,8 @@ const handle = nextApp.getRequestHandler();
 async function authenticate(email, passwd) {
   try {
     var userName, userPasswdCr, userEmail, userBirthdate;
-    var query = "SELECT name, passwdCr, email, birthdate FROM user WHERE email = ?";
+    var query =
+      "SELECT name, passwdCr, email, birthdate FROM user WHERE email = ?";
     const connection = await pool.getConnection();
 
     var [result, fields] = await connection.query(query, [email]);
@@ -78,14 +79,12 @@ async function authenticate(email, passwd) {
         var response = {
           name: userName,
           email: userEmail,
-          birthdate: userBirthdate
+          birthdate: userBirthdate,
         };
-      }
-      else {
+      } else {
         var response = { error: "The password is invalid." };
       }
-    }
-    else {
+    } else {
       var response = { error: "The email not exist." };
     }
     return response;
@@ -126,6 +125,7 @@ server.get("", (req, res) => {
   return res.redirect("/login");
 });
 
+
 server.post("/login", checkLogin, async (req, res, next) => {
   var email = req.body.email;
   var passwd = req.body.password;
@@ -133,17 +133,17 @@ server.post("/login", checkLogin, async (req, res, next) => {
     var validation = await authenticate(email, passwd);
     if (validation.error) {
       console.error(validation.error);
-    }
-    else {
-      var token = jsonwebtoken.sign({ validation }, jwtSecret, { expiresIn: expiration });
+    } else {
+      var token = jsonwebtoken.sign({ validation }, jwtSecret, {
+        expiresIn: expiration,
+      });
 
-      res.cookie('token', token, { httpOnly: true });
+      res.cookie("token", token, { httpOnly: true });
+      res.cookie("username", validation.name, { httpOnly: true });
       res.json({ token });
-
     }
-  }
-  catch (err) {
-    console.error(err)
+  } catch (err) {
+    console.error(err);
   }
 });
 
