@@ -45,14 +45,14 @@ export const GroupChatCard = ({
   );
 };
 
-export const MessageCard = ({ username, msg, pp }) => {
+export const MessageCard = ({ chatEntry }) => {
   return (
     <>
       <div className="flex p-2 rounded h-auto">
-        <Avatar src={pp} />
+        <Avatar src="https://image.freepik.com/vector-gratis/perfil-avatar-hombre-icono-redondo_24640-14044.jpg" />
         <div className="pl-2 overflow-hidden">
-          <p className="font-semibold block">{username}</p>
-          <p className="block truncate">{msg}</p>
+          <p className="font-semibold block">{chatEntry.username}</p>
+          <p className="block truncate">{chatEntry.msg}</p>
         </div>
       </div>
     </>

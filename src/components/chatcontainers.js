@@ -1,7 +1,9 @@
 import { PureComponent } from "react";
 import { render } from "react-dom";
-import { MessageCard } from "../components/chatcards";
-
+import { useState } from "react";
+import { MessageCard } from "./chatcards";
+import Chat from "../utils/chat";
+import ChatEntry from "../utils/chat_entry";
 export const ButtonCall = (props) => {
   return (
     <button
@@ -97,11 +99,19 @@ export const ChatCams = (props) => {
   );
 };
 
-export const ChatInputBox = () => {
+export const ChatInputBox = (props) => {
+  const [text, setText] = useState(null);
   return (
     <div className="inline-flex mt-2 container-bg">
-      <textarea className="inline w-full"></textarea>
-      <button className="mx-3 btn-black inline">Send</button>
+      <textarea onChange={(e) => {setText(e.target.value)}} className="inline w-full"></textarea>
+      <button
+        onClick={() => {
+          props.onSendMessageClick(text);
+        }}
+        className="mx-3 btn-black inline"
+      >
+        Send
+      </button>
     </div>
   );
 };
@@ -111,7 +121,7 @@ export const ChatContainer = (props) => {
     <div className="flex items-strech flex-col flex-1 mr-2 mt-2 p-1 overflow-auto">
       <div className="inline-flex justify-center text-3xl container-bg">
         <p className="flex-1 inline text-center mt-3 font-bold">
-          Chatting with {props.chat}
+          Chatting with {props.chat.username}
         </p>
         <ButtonCall
           onClick={async () => {
@@ -128,38 +138,23 @@ export const ChatContainer = (props) => {
       </div>
       <ChatCams streams={props.streams} />
       <div className="mt-2 container-bg">
-        <MessageCard
-          username="User1"
-          msg="Hello, wanna play some videogames later?"
-          pp="https://image.freepik.com/vector-gratis/perfil-avatar-hombre-icono-redondo_24640-14044.jpg"
-        />
-        <MessageCard
-          username="You"
-          msg="yeah, sure"
-          pp="https://image.freepik.com/vector-gratis/perfil-avatar-hombre-icono-redondo_24640-14044.jpg"
-        />
-        <MessageCard
-          username="User1"
-          msg="K, what do u want to play??"
-          pp="https://image.freepik.com/vector-gratis/perfil-avatar-hombre-icono-redondo_24640-14044.jpg"
-        />
-        <MessageCard
-          username="User1"
-          msg="Wanna play RoR2? :3"
-          pp="https://image.freepik.com/vector-gratis/perfil-avatar-hombre-icono-redondo_24640-14044.jpg"
-        />
-        <MessageCard
-          username="You"
-          msg="Sure thing"
-          pp="https://image.freepik.com/vector-gratis/perfil-avatar-hombre-icono-redondo_24640-14044.jpg"
-        />
-        <MessageCard
-          username="User1"
-          msg="Nice! cya"
-          pp="https://image.freepik.com/vector-gratis/perfil-avatar-hombre-icono-redondo_24640-14044.jpg"
-        />
+        {props.chat.msgs.length == 0 && (
+          <div className="pl-2 overflow-hidden">
+            <h1 className="font-bold block truncate">
+              This is a new chat! Say Hello!
+            </h1>
+          </div>
+        )}
+        {Object.entries(props.chat.msgs).map(([id, msg]) => {
+          console.log(msg);
+          return <MessageCard key={msg.id} chatEntry={msg} />;
+        })}
       </div>
-      <ChatInputBox />
+      <ChatInputBox
+        onSendMessageClick={(msg) => {
+          props.onSendMessageClick(msg);
+        }}
+      />
     </div>
   );
 };

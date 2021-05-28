@@ -28,16 +28,19 @@ export const SideBar = (props) => {
         id="sidebar-movil"
       >
         <ul>
-          {Object.entries(props.users).map(([id, user]) => {
+          {Object.entries(props.chats).map(([id, chat]) => {
+            const last = chat.msgs[chat.msgs.length - 1];
+            console.log("LAST MSG ENTRY", last);
+            const lastmsg = last != undefined ? last.msg : "New chat";
             return (
               <UserChatCard
-                key={id}
-                username={user}
-                lastmsg="Helloaaaaaaaa"
+                key={chat.id}
+                username={chat.username}
+                lastmsg={lastmsg}
                 pp="https://image.freepik.com/vector-gratis/perfil-avatar-hombre-icono-redondo_24640-14044.jpg"
                 selected={true}
                 onClick={() => {
-                  props.ononSideBarClick(user, id);
+                  props.ononSideBarClick(chat);
                 }}
               />
             );
