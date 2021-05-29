@@ -21,7 +21,18 @@ const expiration = "1d";
 const server = express();
 const port = parseInt(process.env.PORT, 10) || 3000;
 
-websocket();
+/**
+ * Pool para la BBDD
+ */
+
+ const pool = mysql.createPool({
+  host: "localhost",
+  user: "vcomdbuser",
+  password: "GQjsHCdwpinWvnqX",
+  database: "vcommult",
+});
+
+websocket(pool);
 
 server.use(express.json());
 server.use(express.urlencoded({ extended: false }));
@@ -38,16 +49,6 @@ server.get("/logout", async (req, res, next) => {
 
 server.use(checkLogin);
 
-/**
- * Pool para la BBDD
- */
-
-const pool = mysql.createPool({
-  host: "localhost",
-  user: "vcomdbuser",
-  password: "GQjsHCdwpinWvnqX",
-  database: "vcommult",
-});
 
 /**
  * Enlazar NextJS con Express. Obtener handler.

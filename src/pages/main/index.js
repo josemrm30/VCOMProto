@@ -5,6 +5,9 @@ import { Component } from "react";
 import do_query from "../../api/db";
 import Chat from "../../utils/chat";
 import ChatEntry from "../../utils/chat_entry";
+import { ToastContainer, toast } from "react-toastify";
+import {CallPopUp} from "../../components/callpopup";
+import 'react-toastify/dist/ReactToastify.min.css';
 
 const config = {
   iceServers: [
@@ -34,7 +37,7 @@ const config = {
  * STREAM RESTRICTIONS
  */
 const rest = {
-  audio: false,
+  audio: true,
   video: true,
 };
 
@@ -216,7 +219,6 @@ class Main extends Component {
     for (const track of localStream.getTracks()) {
       this.pc.addTrack(track, localStream);
     }
-
     this.ws.send(
       JSON.stringify({
         tipo: "rol",
@@ -228,6 +230,7 @@ class Main extends Component {
     this.pc.ontrack = (e) => {
       console.log("stream found ", e.streams);
       this.setState((prevState) => {
+
         return {
           streams: [...prevState.streams, e.streams[0]],
         };
@@ -352,37 +355,41 @@ class Main extends Component {
 
   render() {
     return (
-      <Headfoot user={this.user}>
-        <SideBar
-          chats={this.state.chats}
-          ononSideBarClick={(selectedChat) => {
-            this.onSideBarClick(selectedChat);
-          }}
-        />
-        {this.state.actualChat && (
-          <ChatContainer
-            chat={this.state.actualChat}
-            streams={this.state.streams}
-            calling={this.state.calling}
-            onCallButtonClick={async () => {
-              await this.onCallButtonClick();
-            }}
-            onHangUpButtonClick={() => {
-              this.onHangUpButtonClick();
-            }}
-            onSendMessageClick={(msg) => {
-              this.onSendMessageClick(msg);
+      <>
+        <Headfoot user={this.user}>
+          <SideBar
+            chats={this.state.chats}
+            ononSideBarClick={(selectedChat) => {
+              this.onSideBarClick(selectedChat);
             }}
           />
-        )}
-        {!this.state.actualChat && (
-          <>
-            <h2 className="text-xl">
-              Create a new conversation or click on a recent one
-            </h2>
-          </>
-        )}
-      </Headfoot>
+          
+          {this.state.actualChat && (
+            <ChatContainer
+              chat={this.state.actualChat}
+              streams={this.state.streams}
+              calling={this.state.calling}
+              onCallButtonClick={async () => {
+                await this.onCallButtonClick();
+              }}
+              onHangUpButtonClick={() => {
+                this.onHangUpButtonClick();
+              }}
+              onSendMessageClick={(msg) => {
+                this.onSendMessageClick(msg);
+              }}
+            />
+          )}
+          {!this.state.actualChat && (
+            <>
+              <h2 className="text-xl">
+                Create a new conversation or click on a recent one
+              </h2>
+            </>
+          )}
+        </Headfoot>
+        <ToastContainer />
+      </>
     );
   }
 }

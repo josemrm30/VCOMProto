@@ -14,7 +14,7 @@ const Friends = (props) => {
   return (
     <Headfoot>
       <div class="lg:flex block flex-row w-full mx-auto mt-1">
-        <div className="block mx-1 p-5 lg:w-3/5 container-bg">
+        <div className="block mx-1 p-5 lg:w-3/5 container-bg h-full">
           <p className="text-3xl font-bold">Your friends</p>
           <hr className="w-full my-1" />
           {Object.entries(props.friendlist).map(([id, friend]) => {
@@ -22,7 +22,7 @@ const Friends = (props) => {
             return <FriendElement key={id} friend={friend} />;
           })}
         </div>
-        <div className="block mx-1 lg:w-2/5 lg:mt-0 mt-1">
+        <div className="block mx-1 lg:w-2/5 lg:mt-0 mt-1 h-full">
           <div className="block p-5 container-bg">
             <p className="text-3xl font-bold">Add friends</p>
             <hr className="w-full my-1" />
@@ -32,7 +32,7 @@ const Friends = (props) => {
             </p>
             <FriendRequestTextBox />
           </div>
-          <div className="block mt-1 p-5 container-bg">
+          <div className="block mt-1 p-5 container-bg h-full">
             <p className="text-3xl font-bold">Friendship requests</p>
             <hr className="w-full my-1" />
             {Object.entries(props.petitionlist).map(([id, petition]) => {

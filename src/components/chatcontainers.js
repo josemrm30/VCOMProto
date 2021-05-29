@@ -1,6 +1,6 @@
 import { PureComponent } from "react";
 import { render } from "react-dom";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { MessageCard } from "./chatcards";
 import Chat from "../utils/chat";
 import ChatEntry from "../utils/chat_entry";
@@ -101,12 +101,15 @@ export const ChatCams = (props) => {
 
 export const ChatInputBox = (props) => {
   const [text, setText] = useState(null);
+  const textarea = useRef(null);
   return (
     <div className="inline-flex mt-2 container-bg">
-      <textarea onChange={(e) => {setText(e.target.value)}} className="inline w-full"></textarea>
+      <textarea ref={textarea} onChange={(e) => {setText(e.target.value)}} className="inline w-full text-black"></textarea>
       <button
         onClick={() => {
           props.onSendMessageClick(text);
+          textarea.current.value = "";
+          setText(null);
         }}
         className="mx-3 btn-black inline"
       >
@@ -117,8 +120,9 @@ export const ChatInputBox = (props) => {
 };
 
 export const ChatContainer = (props) => {
+  const msgarea = useRef(null);
   return (
-    <div className="flex items-strech flex-col flex-1 mr-2 mt-2 p-1 overflow-auto">
+    <div className="flex items-strech flex-col flex-1 mr-2 mt-2 p-1 overflow-auto max-h-screen">
       <div className="inline-flex justify-center text-3xl container-bg">
         <p className="flex-1 inline text-center mt-3 font-bold">
           Chatting with {props.chat.username}
@@ -137,7 +141,7 @@ export const ChatContainer = (props) => {
         />
       </div>
       <ChatCams streams={props.streams} />
-      <div className="mt-2 container-bg">
+      <div ref={msgarea} className="mt-2 container-bg overflow-y-scroll h-full max-h-full">
         {props.chat.msgs.length == 0 && (
           <div className="pl-2 overflow-hidden">
             <h1 className="font-bold block truncate">
@@ -153,6 +157,7 @@ export const ChatContainer = (props) => {
       <ChatInputBox
         onSendMessageClick={(msg) => {
           props.onSendMessageClick(msg);
+          //msgarea.current.scrollIntoView(false);
         }}
       />
     </div>

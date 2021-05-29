@@ -1,12 +1,12 @@
 const ws = require("ws");
 
-function websocket() {
+function websocket(pool) {
   var conexiones = {}; //Diccionario [String (user id): Socket (client)]
   var users = {};
 
   const wss = new ws.Server({ port: 8085 });
   wss.on("connection", (client, req) => {
-    client.on("message", (e) => {
+    client.on("message", async (e) => {
       //Al recibir un mensaje (e->evento)
       console.log("Nuevo mensaje --> ", e, JSON.parse(e));
       var data = JSON.parse(e);
@@ -57,11 +57,21 @@ function websocket() {
           }
           break;
         case "chatmsg":
-            //Insertar en la bbdd...
-            if(conexiones[data.receiverid]){
-                conexiones[data.receiverid].send(e);
+          //Insertar en la bbdd...
+          try {
+            const connection = await pool.getConnection();
+            await connection.query(
+              "INSERT INTO chat_entry VALUES (?, ?, ?, ?) ",
+              [null, data.chatid, data.senderid, data.message]
+            );
+            connection.release();
+            if (conexiones[data.receiverid]) {
+              conexiones[data.receiverid].send(e);
             }
-            break;
+          } catch (err) {
+            console.log(err);
+          }
+          break;
         default:
           //El server no entiende el tipo de mensaje y no puede hacer nada. F
           console.log("No se ha entendido el tipo de mensaje: " + data.tipo);
