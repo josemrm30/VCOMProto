@@ -30,6 +30,7 @@ const port = parseInt(process.env.PORT, 10) || 3000;
   user: "vcomdbuser",
   password: "GQjsHCdwpinWvnqX",
   database: "vcommult",
+  charset: "utf8mb4"
 });
 
 websocket(pool);

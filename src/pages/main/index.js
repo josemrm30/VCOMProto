@@ -12,18 +12,19 @@ import "react-toastify/dist/ReactToastify.min.css";
 const config = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
-    { urls: "stun:stun4.l.google.com:19302" },
+    //{ urls: "stun:stun4.l.google.com:19302" },
     {
       urls: "turn:numb.viagenie.ca",
       credential: "muazkh",
       username: "webrtc@live.com",
     },
+    /*
     {
       urls: "turn:192.158.29.39:3478?transport=udp",
       credential: "JZEOEt2V3Qb0y27GRntt2u2PAYA=",
       username: "28224511:1379330808",
     },
-    /*
+    
     {
       urls: "turn:192.158.29.39:3478?transport=tcp",
       credential: "JZEOEt2V3Qb0y27GRntt2u2PAYA=",
@@ -172,6 +173,7 @@ class Main extends Component {
       this.ws.send(
         JSON.stringify({
           tipo: "username",
+          pagina: "app",
           contenido: this.user,
         })
       );
@@ -186,8 +188,10 @@ class Main extends Component {
 
   //Función para silenciar la pista de audio del usuario (mutearse)
   onMuteButtonClick(muted) {
-    for (const track of this.state.streams[0].getTracks()) { //Sabemos que el objeto MediaStream local siempre será el primero, iteramos por sus pistas
-      if (track.kind == "audio") { //Si la pista es de audio, la silenciamos
+    for (const track of this.state.streams[0].getTracks()) {
+      //Sabemos que el objeto MediaStream local siempre será el primero, iteramos por sus pistas
+      if (track.kind == "audio") {
+        //Si la pista es de audio, la silenciamos
         track.enabled = muted; //Deshabilitamos la pista = silencarla. Se actualiza en el otro peer automaticamente por WebRTC
       }
     }
@@ -206,6 +210,7 @@ class Main extends Component {
     if (this.ws) {
       const msgdc = {
         tipo: "disconnect",
+        pagina: "app",
         userid: this.user,
       };
       console.log(JSON.stringify(msgdc));
@@ -427,7 +432,7 @@ class Main extends Component {
                 await this.captureScreen();
               }}
               onMuteButtonClick={(muted) => {
-                this.onMuteButtonClick(muted)
+                this.onMuteButtonClick(muted);
               }}
               onHideCameraClick={(hide) => {
                 this.onHideCamClick(hide);

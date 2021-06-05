@@ -1,4 +1,4 @@
-import { PureComponent } from "react";
+import { PureComponent, useEffect } from "react";
 import { render } from "react-dom";
 import { useState, useRef } from "react";
 import { MessageCard } from "./chatcards";
@@ -169,41 +169,34 @@ export const ButtonHideCam = (props) => {
   );
 };
 
+export const StreamComponent = (props) => {
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    //Compruebo ya que useEffect = didMount() + didUpdate()
+    if (videoRef.current) {
+      videoRef.current.srcObject = props.stream;
+    }
+  }, [props.stream]);
+
+  return (
+    <video
+      ref={videoRef}
+      key={props.stream.id}
+      style={{ width: "400px", height: "300px" }}
+      autoPlay
+      muted={props.muted ? "muted" : ""}
+    ></video>
+  );
+};
+
 export const ChatCams = (props) => {
   return (
     <>
       <div className="container-bg">
         <div className="block lg:flex lg:flex-wrap content-center justify-center mt-2">
           {props.streams.map((stream, index) => {
-            if (index) {
-              return (
-                <video
-                  className="mx-1"
-                  key={index}
-                  ref={(videoRef) => {
-                    if (videoRef) {
-                      videoRef.srcObject = stream;
-                    }
-                  }}
-                  style={{ width: "300px", height: "200px" }}
-                  autoPlay
-                ></video>
-              );
-            } else
-              return (
-                <video
-                  className="mx-1"
-                  key={index}
-                  ref={(videoRef) => {
-                    if (videoRef) {
-                      videoRef.srcObject = stream;
-                    }
-                  }}
-                  style={{ width: "300px", height: "200px" }}
-                  muted
-                  autoPlay
-                ></video>
-              );
+            return <StreamComponent stream={stream} muted={index} />;
           })}
         </div>
         {props.streams.length > 0 && (
@@ -300,7 +293,7 @@ export const ChatContainer = (props) => {
             </h1>
           </div>
         )}
-        {Object.entries(props.chat.msgs).map(([id, msg]) => {
+        {Object.entries(props.chat.msgs).map(([index, msg]) => {
           //console.log(msg);
           return <MessageCard key={msg.id} chatEntry={msg} />;
         })}
