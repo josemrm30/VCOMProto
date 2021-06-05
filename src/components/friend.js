@@ -1,14 +1,25 @@
 import { Avatar } from "./avatar";
 import FriendEntry from "../utils/friend_entry";
-export const FriendRequestTextBox = () => {
+import { useRef } from "react";
+export const FriendRequestTextBox = (props) => {
+  const inputRef = useRef(null);
   return (
     <div className="flex-1 mt-2">
       <input
+        ref={inputRef}
         type="text"
         className="text-black"
         placeholder="Enter user ID..."
       ></input>
-      <button className="ml-3 inline btn-black-inverted">Send!</button>
+      <button
+        onClick={() => {
+          props.sendPeticion(inputRef.current.value);
+          inputRef.current.value = ""
+        }}
+        className="ml-3 inline btn-black-inverted"
+      >
+        Send!
+      </button>
     </div>
   );
 };
@@ -65,7 +76,7 @@ export const FriendElement = ({ friend }) => {
   );
 };
 
-export const FriendRequest = ({ friend }) => {
+export const FriendRequest = ({ friend, onClick }) => {
   return (
     <div className="flex p-1 my-1">
       <Avatar
@@ -80,7 +91,13 @@ export const FriendRequest = ({ friend }) => {
         </p>
       </div>
       <div className="inline-flex">
-        <button>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            console.log("Aceptada: " + friend.id);
+            onClick(friend, true);
+          }}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="inline h-10 w-10 mr-5 p-2 cursor-pointer bg-green-500 rounded-full hover:border-opacity-100 hover:bg-white border border-green-600 fill-current text-white hover:text-green-600"
@@ -94,7 +111,13 @@ export const FriendRequest = ({ friend }) => {
             />
           </svg>
         </button>
-        <button>
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            console.log("Rechazada: " + friend.id);
+            onClick(friend, false);
+          }}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="inline h-10 w-10 mr-5 p-2 cursor-pointer bg-red-600 rounded-full hover:border-opacity-100 hover:bg-white border border-red-600 fill-current text-white hover:text-red-600"

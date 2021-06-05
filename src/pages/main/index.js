@@ -5,22 +5,26 @@ import { Component } from "react";
 import do_query from "../../api/db";
 import Chat from "../../utils/chat";
 import ChatEntry from "../../utils/chat_entry";
+import { ToastContainer, toast } from "react-toastify";
+import { CallPopUp } from "../../components/callpopup";
+import "react-toastify/dist/ReactToastify.min.css";
 
 const config = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
-    { urls: "stun:stun4.l.google.com:19302" },
+    //{ urls: "stun:stun4.l.google.com:19302" },
     {
       urls: "turn:numb.viagenie.ca",
       credential: "muazkh",
       username: "webrtc@live.com",
     },
+    /*
     {
       urls: "turn:192.158.29.39:3478?transport=udp",
       credential: "JZEOEt2V3Qb0y27GRntt2u2PAYA=",
       username: "28224511:1379330808",
     },
-    /*
+    
     {
       urls: "turn:192.158.29.39:3478?transport=tcp",
       credential: "JZEOEt2V3Qb0y27GRntt2u2PAYA=",
@@ -34,7 +38,7 @@ const config = {
  * STREAM RESTRICTIONS
  */
 const rest = {
-  audio: false,
+  audio: true,
   video: true,
 };
 
@@ -59,11 +63,11 @@ class Main extends Component {
       calling: false,
     };
     this.user = props.username;
-    //this.user = window.localStorage.getItem("user");
     this.makingSDPOffer = false;
     this.polite = false;
   }
 
+  //Gestión de los mensajes mediante websocket
   async onmessagelsn(e) {
     var msg = JSON.parse(e.data);
     console.log(msg);
@@ -161,6 +165,7 @@ class Main extends Component {
     }
   }
 
+  //Configurar la conexión al server WS
   setupWS() {
     this.ws = new WebSocket("ws://" + window.location.hostname + ":8085");
     this.ws.addEventListener("open", (e) => {
@@ -168,6 +173,7 @@ class Main extends Component {
       this.ws.send(
         JSON.stringify({
           tipo: "username",
+          pagina: "app",
           contenido: this.user,
         })
       );
@@ -180,10 +186,31 @@ class Main extends Component {
     });
   }
 
+  //Función para silenciar la pista de audio del usuario (mutearse)
+  onMuteButtonClick(muted) {
+    for (const track of this.state.streams[0].getTracks()) {
+      //Sabemos que el objeto MediaStream local siempre será el primero, iteramos por sus pistas
+      if (track.kind == "audio") {
+        //Si la pista es de audio, la silenciamos
+        track.enabled = muted; //Deshabilitamos la pista = silencarla. Se actualiza en el otro peer automaticamente por WebRTC
+      }
+    }
+  }
+
+  //Función para ocultar la cámara del usuario.
+  onHideCamClick(hide) {
+    for (const track of this.state.streams[0].getTracks()) {
+      if (track.kind == "video") {
+        track.enabled = hide;
+      }
+    }
+  }
+
   disconnect() {
     if (this.ws) {
       const msgdc = {
         tipo: "disconnect",
+        pagina: "app",
         userid: this.user,
       };
       console.log(JSON.stringify(msgdc));
@@ -192,8 +219,7 @@ class Main extends Component {
         this.pc.close();
         this.pc = null;
       }
-      alert("Adios!");
-    } else alert("Como puede ser posible esto xd");
+    } else console.log("Como puede ser posible esto xd");
   }
 
   componentDidMount() {
@@ -208,7 +234,19 @@ class Main extends Component {
       actualChat: selectedchat,
     });
   }
-
+  async captureScreen() {
+    try {
+      let captureStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+      });
+      for (const track of captureStream.getTracks()) {
+        console.log(track.label);
+        this.pc.addTrack(track, captureStream);
+      }
+    } catch (err) {
+      console.error("Error: " + err);
+    }
+  }
   async configPeerConnection() {
     this.pc = new RTCPeerConnection(config);
 
@@ -216,7 +254,6 @@ class Main extends Component {
     for (const track of localStream.getTracks()) {
       this.pc.addTrack(track, localStream);
     }
-
     this.ws.send(
       JSON.stringify({
         tipo: "rol",
@@ -225,11 +262,27 @@ class Main extends Component {
       })
     );
 
-    this.pc.ontrack = (e) => {
-      console.log("stream found ", e.streams);
+    this.pc.ontrack = ({ streams: [stream] }) => {
+      console.log("stream found ", stream);
+
+      /**
+       * FIXED: Doble stream bug
+       * Antes, WebRTC usaba los MediaStreams directamente y no las pistas, por eso se duplicaba los streams
+       * del peer remoto. El evento ontrack se disparaba dos veces ya que se envia la pista de audio y la de video por
+       * separado, aunque pertenecen al mismo stream. Por lo tanto, hay que comprobar que no se haya añadido ya
+       * el stream dicho al array de streams del componente de react mediante sus ids.
+       */
+      for (var elemstream in this.state.streams) {
+        console.log(this.state.streams[elemstream].id + "==" + stream.id);
+        console.log(this.state.streams[elemstream].id);
+        if (this.state.streams[elemstream].id == stream.id) {
+          console.log("Ya tenia este stream");
+          return;
+        }
+      }
       this.setState((prevState) => {
         return {
-          streams: [...prevState.streams, e.streams[0]],
+          streams: [...prevState.streams, stream],
         };
       });
     };
@@ -352,37 +405,50 @@ class Main extends Component {
 
   render() {
     return (
-      <Headfoot user={this.user}>
-        <SideBar
-          chats={this.state.chats}
-          ononSideBarClick={(selectedChat) => {
-            this.onSideBarClick(selectedChat);
-          }}
-        />
-        {this.state.actualChat && (
-          <ChatContainer
-            chat={this.state.actualChat}
-            streams={this.state.streams}
-            calling={this.state.calling}
-            onCallButtonClick={async () => {
-              await this.onCallButtonClick();
-            }}
-            onHangUpButtonClick={() => {
-              this.onHangUpButtonClick();
-            }}
-            onSendMessageClick={(msg) => {
-              this.onSendMessageClick(msg);
+      <>
+        <Headfoot user={this.user}>
+          <SideBar
+            chats={this.state.chats}
+            ononSideBarClick={(selectedChat) => {
+              this.onSideBarClick(selectedChat);
             }}
           />
-        )}
-        {!this.state.actualChat && (
-          <>
-            <h2 className="text-xl">
-              Create a new conversation or click on a recent one
-            </h2>
-          </>
-        )}
-      </Headfoot>
+
+          {this.state.actualChat && (
+            <ChatContainer
+              chat={this.state.actualChat}
+              streams={this.state.streams}
+              calling={this.state.calling}
+              onCallButtonClick={async () => {
+                await this.onCallButtonClick();
+              }}
+              onHangUpButtonClick={() => {
+                this.onHangUpButtonClick();
+              }}
+              onSendMessageClick={(msg) => {
+                this.onSendMessageClick(msg);
+              }}
+              onScreenShareClick={async () => {
+                await this.captureScreen();
+              }}
+              onMuteButtonClick={(muted) => {
+                this.onMuteButtonClick(muted);
+              }}
+              onHideCameraClick={(hide) => {
+                this.onHideCamClick(hide);
+              }}
+            />
+          )}
+          {!this.state.actualChat && (
+            <>
+              <h2 className="text-xl">
+                Create a new conversation or click on a recent one
+              </h2>
+            </>
+          )}
+        </Headfoot>
+        <ToastContainer />
+      </>
     );
   }
 }
