@@ -10,6 +10,7 @@
 
 'use strict';
 
+console.log("ADAPTER JS LOADED");
 var _adapter_factory = require('./adapter_factory.js');
 
 var adapter = (0, _adapter_factory.adapterFactory)({ window: typeof window === 'undefined' ? undefined : window });
