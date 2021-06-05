@@ -1,6 +1,6 @@
 const jsonwebtoken = require('jsonwebtoken');
-const { redirect } = require('next/dist/next-server/server/api-utils');
-const jwtSecret = "probando12345";
+require('dotenv').config()
+const jwtSecret = process.env.JWT_SECRET;
 
 
 const checkLogin = function (req, res, next) {

@@ -9,10 +9,10 @@ const jsonwebtoken = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const checkLogin = require("./checklogin");
 const websocket = require("./websocket");
-//const routerServer = require("./routesServer");  //rutas modulares, continuar en el futuro.
+require('dotenv').config()
 
-const jwtSecret = "probando12345";
-const expiration = "1d";
+const jwtSecret = process.env.JWT_SECRET;
+const expiration = process.env.JWT_EXPIRATION;
 
 /**
  * Variables que guardan la instancia del server con express y puerto y el ws
@@ -43,10 +43,11 @@ server.use(checkLogin);
  */
 
 const pool = mysql.createPool({
-  host: "localhost",
-  user: "vcomdbuser",
-  password: "GQjsHCdwpinWvnqX",
-  database: "vcommult",
+  host: process.env.MYSQL_HOST,
+  port: process.env.MYSQL_PORT,
+  database: process.env.MYSQL_DATABASE,
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
 });
 
 /**
@@ -90,8 +91,7 @@ async function authenticate(email, passwd) {
     return response;
   }
   catch (err) {
-    var response = { error: "The username or email already exist" };
-    return response;
+    throw err;
   }
 }
 
@@ -114,7 +114,8 @@ async function signup(username, email, passwd, bday) {
     return response;
   }
   catch (err) {
-    throw err;
+    var response = { error: "The username or email already exist" };
+    return response;
   }
 }
 

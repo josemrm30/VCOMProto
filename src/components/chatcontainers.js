@@ -103,7 +103,7 @@ export const ChatInputBox = (props) => {
   const [text, setText] = useState(null);
   return (
     <div className="inline-flex mt-2 container-bg">
-      <textarea onChange={(e) => {setText(e.target.value)}} className="inline w-full"></textarea>
+      <textarea onChange={(e) => {setText(e.target.value)}} className="inline w-full text-black"></textarea>
       <button
         onClick={() => {
           props.onSendMessageClick(text);
