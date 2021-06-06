@@ -4,7 +4,6 @@ import {
   FriendRequestTextBox,
 } from "../../components/friend";
 import { Headfoot } from "../../components/headfoot";
-import { useRouter } from "next/router";
 import do_query from "../../api/db";
 import FriendEntry from "../../utils/friend_entry";
 import { useEffect, useState } from "react";
@@ -132,7 +131,7 @@ const Friends = (props) => {
 
   return (
     <Headfoot user={props.username}>
-      <div class="lg:flex block flex-row w-full mx-auto mt-1">
+      <div className="lg:flex block flex-row w-full mx-auto mt-1">
         <div className="block mx-1 p-5 lg:w-3/5 container-bg h-full">
           <p className="text-3xl font-bold">Your friends</p>
           <hr className="w-full my-1" />

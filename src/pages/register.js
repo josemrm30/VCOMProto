@@ -1,7 +1,7 @@
 import Image from "next/image";
-import { useState, useEffect } from "react";
-import Particles from "react-particles-js";
+import { useState } from "react";
 import { TitleIcon } from "../components/titleicon";
+import Particles from "react-particles-js";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.min.css";
 

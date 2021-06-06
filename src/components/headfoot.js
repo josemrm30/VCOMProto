@@ -1,7 +1,6 @@
-import Link from "next/link";
 import { NavBar } from "./navbar";
 import {TitleIcon} from "./titleicon";
-import { ToastContainer, toast } from 'react-toastify';
+
 export const Headfoot = (props) => {
   return (
     <>

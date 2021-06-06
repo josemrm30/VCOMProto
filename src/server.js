@@ -14,7 +14,7 @@ require('dotenv').config()
 const jwtSecret = process.env.JWT_SECRET;
 const expiration = process.env.JWT_EXPIRATION;
 
-var urlimgtemp = "https://image.freepik.com/vector-gratis/perfil-avatar-hombre-icono-redondo_24640-14044.jpg";
+var urlimgtemp = "/defaultprofilepic.jpg";
 
 /**
  * Variables que guardan la instancia del server con express y puerto y el ws
@@ -163,6 +163,27 @@ server.post("/login", checkLogin, async (req, res, next) => {
 });
 
 server.post("/register", checkLogin, async (req, res, next) => {
+  var username = req.body.username;
+  var email = req.body.email;
+  var passwd = req.body.password;
+  try {
+    var validation = await signup(username, email, passwd);
+    if (validation.error) {
+      return res.json(validation);
+    }
+    else {
+      var token = jsonwebtoken.sign({ validation }, jwtSecret, { expiresIn: expiration });
+      res.cookie("token", token, { httpOnly: true });
+      res.cookie("user", JSON.stringify(validation), { httpOnly: true });
+      return res.json({ ok: "ok" });
+    }
+  }
+  catch (err) {
+    console.error(err)
+  }
+});
+
+server.post("/update", checkLogin, async (req, res, next) => {
   var username = req.body.username;
   var email = req.body.email;
   var passwd = req.body.password;

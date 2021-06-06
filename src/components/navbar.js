@@ -1,6 +1,4 @@
-import Link from "next/link";
 import Image from "next/image";
-import { Avatar } from "./avatar";
 import { UserPart } from "./userPart";
 
 class NavElement {
