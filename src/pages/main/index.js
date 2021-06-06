@@ -456,10 +456,11 @@ class Main extends Component {
 
 export async function getServerSideProps(context) {
   const { req, res } = context;
+  const user = JSON.parse(req.cookies.user).username;
   try {
     const chats = await do_query({
       query: "SELECT * FROM chat_user WHERE user = ?",
-      values: [req.cookies.username],
+      values: [user],
     });
 
     var chatsdic = {};
@@ -467,7 +468,7 @@ export async function getServerSideProps(context) {
       const chatID = chats[elem].chat;
       const [peers, fields] = await do_query({
         query: "SELECT * FROM chat_user WHERE chat = ? AND user <> ?",
-        values: [chatID, req.cookies.username],
+        values: [chatID, user],
       });
 
       const msgs = await do_query({
@@ -491,7 +492,7 @@ export async function getServerSideProps(context) {
     console.log(chatsdic);
     var chatsdiscparsed = JSON.parse(JSON.stringify(chatsdic)); //Hay que hacerlo porque si no NextJS se queja (si, es un poco inutil)
     return {
-      props: { username: req.cookies.username, chats: chatsdiscparsed },
+      props: { username: user, chats: chatsdiscparsed },
     };
   } catch (err) {
     console.log(err);

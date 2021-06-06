@@ -131,7 +131,7 @@ const Friends = (props) => {
   }
 
   return (
-    <Headfoot>
+    <Headfoot user={props.username}>
       <div class="lg:flex block flex-row w-full mx-auto mt-1">
         <div className="block mx-1 p-5 lg:w-3/5 container-bg h-full">
           <p className="text-3xl font-bold">Your friends</p>
@@ -179,7 +179,7 @@ const Friends = (props) => {
 };
 export async function getServerSideProps(context) {
   const { req, res } = context; //Obtener request y response
-  const user = req.cookies.username; //Obtener username
+  const user = JSON.parse(req.cookies.user).username; //Obtener username
   try {
     const amigos = await do_query({
       query:

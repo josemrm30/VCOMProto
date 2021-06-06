@@ -154,7 +154,7 @@ server.post("/login", checkLogin, async (req, res, next) => {
     else {
       var token = jsonwebtoken.sign({ validation }, jwtSecret, { expiresIn: expiration });
       res.cookie("token", token, { httpOnly: true });
-      res.cookie("user", validation, { httpOnly: true });
+      res.cookie("user", JSON.stringify(validation), { httpOnly: true });
       return res.json({ ok: "ok" });
     }
   } catch (err) {
@@ -174,7 +174,7 @@ server.post("/register", checkLogin, async (req, res, next) => {
     else {
       var token = jsonwebtoken.sign({ validation }, jwtSecret, { expiresIn: expiration });
       res.cookie("token", token, { httpOnly: true });
-      res.cookie("user", validation, { httpOnly: true });
+      res.cookie("user", JSON.stringify(validation), { httpOnly: true });
       return res.json({ ok: "ok" });
     }
   }
