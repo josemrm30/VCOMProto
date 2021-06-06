@@ -2,7 +2,8 @@ import Image from "next/image";
 import Particles from "react-particles-js";
 import { TitleIcon } from "../components/titleicon";
 import { useState } from "react";
-import jwtDecode from "jwt-decode";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.min.css";
 
 const Login = () => {
   const [email, setEmail] = useState();
@@ -28,11 +29,12 @@ const Login = () => {
       password
     });
 
-    var token = user.token;
-    var userData = jwtDecode(token).validation;
-
-    window.localStorage.setItem("user", JSON.stringify(userData));
-    window.location.href = 'http://' + window.location.host + '/main';
+    if (user.error) {
+      toast.error(user.error);
+    }
+    else {
+      window.location.href = 'http://' + window.location.host + '/main';
+    }
   }
 
   const handleRegister = async (e) => {
@@ -47,7 +49,7 @@ const Login = () => {
         <div className="flex w-1/3 m-auto justify-center shadow rounded-md h-3/4 bg-vcom-blue overflow-hidden">
           <div className="mt-3 w-full">
             <div className="flex text-center items-center justify-center">
-              <Image src="/ondas.png" alt="Picture of the author" width={150} height={150}/>
+              <Image src="/ondas.png" alt="Picture of the author" width={150} height={150} />
               <p className="text-4xl font-bold text-white filter drop-shadow-xl">VCOM</p>
             </div>
             <p className="text-4xl text-center font-bold text-black">LOGIN</p>
@@ -93,6 +95,18 @@ const Login = () => {
               </div>
             </div>
           </div>
+        </div>
+        <div>
+          <ToastContainer
+            position="top-right"
+            autoClose={8000}
+            hideProgressBar
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            draggable={false}
+            pauseOnHover={false}
+          />
         </div>
       </div>
       <Particles

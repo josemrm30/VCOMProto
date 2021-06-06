@@ -2,7 +2,8 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import Particles from "react-particles-js";
 import { TitleIcon } from "../components/titleicon";
-import jwtDecode from "jwt-decode";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.min.css";
 
 const Register = () => {
 
@@ -10,15 +11,6 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [birthdate, setBirthdate] = useState("");
-  var auxDate;
-  var maxDate;
-
-  useEffect(() => {
-    auxDate = new Date();
-    auxDate.setFullYear(auxDate.getFullYear() - 14);
-    maxDate = auxDate.toLocaleDateString('es-ES');
-  });
 
   async function checkPassword(registerPasswd) {
     var passw = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.:(),;])[A-Za-z\d@$!%*?&.:(),;]{7,25}$/;
@@ -38,21 +30,24 @@ const Register = () => {
       });
   }
 
+
   async function validateRegister() {
     var valid = true;
-    if (username.length < 5) {
+    if (username.length < 8) {
+      toast.error("The username must have at least 8 characters.");
       valid = false;
     }
-    if (email.length < 5) {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    if (!re.test(email)) {
+      toast.error("You must use a valid email.");
       valid = false;
     }
-    if (!checkPassword(password)) {
+    if (!await checkPassword(password)) {
+      toast.error("The password must contain between 8 an 25 characters, lowercase and uppercase letters, numbers and special characters.");
       valid = false;
     }
-    if (confirmPassword != password || !checkPassword(password)) {
-      valid = false;
-    }
-    if (birthdate > maxDate) {
+    if (confirmPassword != password) {
+      toast.error("Passwords must match");
       valid = false;
     }
     return valid;
@@ -66,16 +61,14 @@ const Register = () => {
         username,
         email,
         password,
-        birthdate
       }
-
       const user = await registerUser(userData);
-
-      var token = user.token;
-      userData = jwtDecode(token).validation;
-
-      window.localStorage.setItem("user", JSON.stringify(userData));
-      window.location.href = 'http://' + window.location.host + '/main';
+      if (user.error) {
+        toast.error(user.error);
+      }
+      else {
+        window.location.href = 'http://' + window.location.host + '/main';
+      }
     }
   }
 
@@ -154,18 +147,6 @@ const Register = () => {
                       onChange={e => setConfirmPassword(e.target.value)}
                     />
                   </div>
-                  <div className="px-12">
-                    <label htmlFor="registerBday" className="text-xl font-medium">
-                      Birth date
-                    </label>
-                    <input
-                      type="date"
-                      className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md text-black"
-                      name="registerBday"
-                      id="registerBday"
-                      onChange={e => setBirthdate(e.target.value)}
-                    />
-                  </div>
                   <div className=" text-center">
                     <button type="button" className="btn-black" onClick={handleRegister}>
                       Register
@@ -180,6 +161,18 @@ const Register = () => {
               </div>
             </div>
           </div>
+        </div>
+        <div>
+          <ToastContainer
+            position="top-right"
+            autoClose={8000}
+            hideProgressBar
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            draggable={false}
+            pauseOnHover={false}
+          />
         </div>
       </div>
       <Particles

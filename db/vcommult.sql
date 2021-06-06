@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 28-05-2021 a las 21:16:24
+-- Tiempo de generación: 06-06-2021 a las 12:50:59
 -- Versión del servidor: 10.4.17-MariaDB
 -- Versión de PHP: 8.0.1
 
@@ -115,19 +115,20 @@ INSERT INTO `friend` (`id`, `user1`, `user2`, `since`, `accepted`) VALUES
 CREATE TABLE `user` (
   `name` varchar(80) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
   `passwdCr` varchar(80) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `email` varchar(80) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `birthdate` date NOT NULL
+  `email` varchar(80) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Volcado de datos para la tabla `user`
 --
 
-INSERT INTO `user` (`name`, `passwdCr`, `email`, `birthdate`) VALUES
-('josemanu3005', '$2y$10$gBYsmiBwJKj6JE62.4Z9d.hLJ.La.IWSYiQ1KJkwxtpMDNRnPmy.G', 'jmrm0038@red.ujaen.es', '1999-05-30'),
-('manuelgm', '$2y$10$gBYsmiBwJKj6JE62.4Z9d.hLJ.La.IWSYiQ1KJkwxtpMDNRnPmy.G', 'mgm00193@red.ujaen.es', '2000-05-16'),
-('usertest', '$2y$10$gBYsmiBwJKj6JE62.4Z9d.hLJ.La.IWSYiQ1KJkwxtpMDNRnPmy.G', 'test@test.com', '2000-01-01'),
-('usertest2', '$2y$10$gBYsmiBwJKj6JE62.4Z9d.hLJ.La.IWSYiQ1KJkwxtpMDNRnPmy.G', 'test2@test.com', '2000-01-01');
+INSERT INTO `user` (`name`, `passwdCr`, `email`) VALUES
+('josemanu3005', '$2y$10$gBYsmiBwJKj6JE62.4Z9d.hLJ.La.IWSYiQ1KJkwxtpMDNRnPmy.G', 'jmrm0038@red.ujaen.es'),
+('manuelgm', '$2y$10$gBYsmiBwJKj6JE62.4Z9d.hLJ.La.IWSYiQ1KJkwxtpMDNRnPmy.G', 'mgm00193@red.ujaen.es'),
+('probandouser', '$2a$10$zHeqjuz4ffymTwvZTBfIPekupK3ne0Rn/w2WFkv0mFByV3E3eDhOe', ''),
+('probandouser76ds', '$2a$10$vzPQU5yOSq7Qb1HHltIHh.hSCuzpOuwcxKZGHMUxVimNl31n.M3jC', 'dsdsds@fsfs.es'),
+('usertest', '$2y$10$gBYsmiBwJKj6JE62.4Z9d.hLJ.La.IWSYiQ1KJkwxtpMDNRnPmy.G', 'test@test.com'),
+('usertest2', '$2y$10$gBYsmiBwJKj6JE62.4Z9d.hLJ.La.IWSYiQ1KJkwxtpMDNRnPmy.G', 'test2@test.com');
 
 --
 -- Índices para tablas volcadas
