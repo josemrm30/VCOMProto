@@ -2,7 +2,8 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import Particles from "react-particles-js";
 import { TitleIcon } from "../components/titleicon";
-import jwtDecode from "jwt-decode";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.min.css";
 
 const Register = () => {
 
@@ -33,20 +34,20 @@ const Register = () => {
   async function validateRegister() {
     var valid = true;
     if (username.length < 8) {
-      console.log("The username must have at least 8 characters.");
+      toast.error("The username must have at least 8 characters.");
       valid = false;
     }
     var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     if (!re.test(email)) {
-      console.log("You must use a valid email.");
+      toast.error("You must use a valid email.");
       valid = false;
     }
     if (!await checkPassword(password)) {
-      console.log("The password must contain between 8 an 25 characters, lowercase and uppercase letters, numbers and special characters.");
+      toast.error("The password must contain between 8 an 25 characters, lowercase and uppercase letters, numbers and special characters.");
       valid = false;
     }
-    if (confirmPassword != password || !await checkPassword(confirmPassword)) {
-      console.log("Passwords must match");
+    if (confirmPassword != password) {
+      toast.error("Passwords must match");
       valid = false;
     }
     return valid;
@@ -61,14 +62,13 @@ const Register = () => {
         email,
         password,
       }
-
       const user = await registerUser(userData);
-
-      var token = user.token;
-      userData = jwtDecode(token).validation;
-
-      window.localStorage.setItem("user", JSON.stringify(userData));
-      window.location.href = 'http://' + window.location.host + '/main';
+      if (user.error) {
+        toast.error(user.error);
+      }
+      else {
+        window.location.href = 'http://' + window.location.host + '/main';
+      }
     }
   }
 
@@ -161,6 +161,18 @@ const Register = () => {
               </div>
             </div>
           </div>
+        </div>
+        <div>
+          <ToastContainer
+            position="top-right"
+            autoClose={8000}
+            hideProgressBar
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            draggable={false}
+            pauseOnHover={false}
+          />
         </div>
       </div>
       <Particles

@@ -14,6 +14,8 @@ require('dotenv').config()
 const jwtSecret = process.env.JWT_SECRET;
 const expiration = process.env.JWT_EXPIRATION;
 
+var urlimgtemp = "https://image.freepik.com/vector-gratis/perfil-avatar-hombre-icono-redondo_24640-14044.jpg";
+
 /**
  * Variables que guardan la instancia del server con express y puerto y el ws
  */
@@ -40,10 +42,13 @@ server.use(express.urlencoded({ extended: false }));
 server.use(cookieParser());
 
 server.get("/logout", async (req, res, next) => {
-  const logged = req.cookies.token;
-  if (logged) {
+  const eToken = req.cookies.token;
+  const eUser = req.cookies.user;
+  if (eToken) {
     res.clearCookie("token");
-    res.clearCookie("username");
+  }
+  if (eUser) {
+    res.clearCookie("user");
   }
   return res.redirect("/login");
 });
@@ -64,7 +69,7 @@ const handle = nextApp.getRequestHandler();
 
 async function authenticate(email, passwd) {
   try {
-    var userName, userPasswdCr, userEmail;
+    var userUsername, userPasswdCr, userEmail;
     var query =
       "SELECT name, passwdCr, email FROM user WHERE email = ?";
     const connection = await pool.getConnection();
@@ -72,20 +77,21 @@ async function authenticate(email, passwd) {
     var [result, fields] = await connection.query(query, [email]);
     connection.release();
     if (result.length) {
-      userName = result[0].name;
+      userUsername = result[0].name;
       userPasswdCr = result[0].passwdCr;
       userEmail = result[0].email;
       const verified = bcrypt.compareSync(passwd, userPasswdCr);
       if (verified) {
         var response = {
-          name: userName,
+          username: userUsername,
           email: userEmail,
+          imgpath: urlimgtemp
         };
       } else {
         var response = { error: "The password is invalid." };
       }
     } else {
-      var response = { error: "The email not exist." };
+      var response = { error: "This email doesn't exist." };
     }
     return response;
   }
@@ -97,23 +103,35 @@ async function authenticate(email, passwd) {
 async function signup(username, email, passwd) {
   try {
     var query = "INSERT INTO user VALUES (?, ?, ?)";
+    var checkname = "SELECT name FROM user WHERE name = ?"
+    var checkemail = "SELECT email FROM user WHERE email = ?"
     const connection = await pool.getConnection();
+
+    var [existName, fields] = await connection.query(checkname, [username]);
+    if (existName != "") {
+      var response = { error: "This username already exist" };
+      return response;
+    }
+    var [existEmail, fields] = await connection.query(checkemail, [email]);
+    if (existEmail != "") {
+      var response = { error: "This email is already in use" };
+      return response;
+    }
 
     var passwdCr = bcrypt.hashSync(passwd, 10);
     var response = {};
     await connection.query(query, [username, passwdCr, email]);
     connection.release();
-
     var response = {
-      name: username,
+      username: username,
       email: email,
+      imgpath: urlimgtemp
     };
-    console.log("probando" + response);
+
     return response;
   }
   catch (err) {
-    var response = { error: "The username or email already exist" };
-    return response;
+    throw err;
   }
 }
 
@@ -131,15 +149,13 @@ server.post("/login", checkLogin, async (req, res, next) => {
   try {
     var validation = await authenticate(email, passwd);
     if (validation.error) {
-      console.error(validation.error);
-    } else {
-      var token = jsonwebtoken.sign({ validation }, jwtSecret, {
-        expiresIn: expiration,
-      });
-
+      return res.json(validation);
+    }
+    else {
+      var token = jsonwebtoken.sign({ validation }, jwtSecret, { expiresIn: expiration });
       res.cookie("token", token, { httpOnly: true });
-      res.cookie("username", validation.name, { httpOnly: true });
-      res.json({ token });
+      res.cookie("user", validation, { httpOnly: true });
+      return res.json({ ok: "ok" });
     }
   } catch (err) {
     console.error(err);
@@ -152,16 +168,14 @@ server.post("/register", checkLogin, async (req, res, next) => {
   var passwd = req.body.password;
   try {
     var validation = await signup(username, email, passwd);
-    console.log("probando2" + validation);
     if (validation.error) {
-      console.error(validation.error);
+      return res.json(validation);
     }
     else {
       var token = jsonwebtoken.sign({ validation }, jwtSecret, { expiresIn: expiration });
-
-      res.cookie('token', token, { httpOnly: true });
-      res.cookie("username", validation.name, { httpOnly: true });
-      res.json({ token });
+      res.cookie("token", token, { httpOnly: true });
+      res.cookie("user", validation, { httpOnly: true });
+      return res.json({ ok: "ok" });
     }
   }
   catch (err) {
