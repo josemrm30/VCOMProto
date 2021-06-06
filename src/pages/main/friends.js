@@ -8,6 +8,8 @@ import { useRouter } from "next/router";
 import do_query from "../../api/db";
 import FriendEntry from "../../utils/friend_entry";
 import { useEffect, useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.min.css";
 
 const Friends = (props) => {
   var ws = null;
@@ -15,6 +17,43 @@ const Friends = (props) => {
   const [friends, setFriends] = useState(props.friendlist);
   const [peticiones, setPeticiones] = useState(props.petitionlist);
 
+  const onmessage = function(e){
+    var msg = JSON.parse(e.data);
+    switch(msg.tipo){
+      case "success":
+        toast.success(msg.content);
+        break;
+      case "info":
+        toast.info(msg.content);
+        break;
+      case "error":
+        toast.error(msg.content);
+        break;
+      case "nuevapeticion":
+        console.log("NUEVA PETICION sis")
+        setPeticiones((prevPeticiones) => ({
+          ...prevPeticiones,
+          [msg.id]: new FriendEntry(msg.id, msg.user, new Date() , false)
+        }))
+        break;
+      case "newfriend":
+        console.log("nuevo amigo");
+        setFriends((prevFriends) => ({
+          ...prevFriends,
+          [msg.id]: new FriendEntry(msg.id, msg.user, msg.since, true)
+        }))
+        toast.success("¡" + msg.user + " acepto tu solicitud de amistad!");
+        break;
+      case "delfriend":
+        setFriends((prevFriends) => {
+          var updated = [...prevFriends];
+          delete updated[msg.id];
+          return updated;
+        })
+        break;
+
+    }
+  }
   //Configurar la conexión al server WS
   const setupWS = function () {
     ws = new WebSocket("ws://" + window.location.hostname + ":8085");
@@ -29,7 +68,7 @@ const Friends = (props) => {
       );
     });
     ws.addEventListener("message", (e) => {
-      //this.onmessagelsn(e);
+      onmessage(e)
     }); //Asignar como listener de los eventos "message" la función onmessagelsn
     ws.addEventListener("close", () => {
       console.log("Adios");
@@ -72,6 +111,25 @@ const Friends = (props) => {
     );
   };
 
+  const eliminaAmigo = function(idEntrada){
+    ws.send(JSON.stringify({
+      tipo: "delfriend",
+      id: idEntrada
+    }))
+    setFriends((prevFriends) => {
+      var updated = [...prevFriends];
+      delete updated[idEntrada];
+      return updated;
+    })
+  }
+
+  const empezarChat = function(username){
+    ws.send(JSON.stringify({
+      tipo: "newchat",
+      username: username
+    }))
+  }
+
   return (
     <Headfoot>
       <div class="lg:flex block flex-row w-full mx-auto mt-1">
@@ -80,7 +138,7 @@ const Friends = (props) => {
           <hr className="w-full my-1" />
           {Object.entries(friends).map(([id, friend]) => {
             console.log(friend);
-            return <FriendElement key={id} friend={friend} />;
+            return <FriendElement key={id} friend={friend} onClickNewChat={(username)=>{empezarChat(username)}}/>;
           })}
         </div>
         <div className="block mx-1 lg:w-2/5 lg:mt-0 mt-1 h-full">
@@ -115,6 +173,7 @@ const Friends = (props) => {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </Headfoot>
   );
 };

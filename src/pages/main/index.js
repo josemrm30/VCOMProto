@@ -6,8 +6,9 @@ import do_query from "../../api/db";
 import Chat from "../../utils/chat";
 import ChatEntry from "../../utils/chat_entry";
 import { ToastContainer, toast } from "react-toastify";
-import { CallPopUp } from "../../components/callpopup";
 import "react-toastify/dist/ReactToastify.min.css";
+import { CallPopUp } from "../../components/callpopup";
+
 
 const config = {
   iceServers: [

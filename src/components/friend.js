@@ -14,7 +14,7 @@ export const FriendRequestTextBox = (props) => {
       <button
         onClick={() => {
           props.sendPeticion(inputRef.current.value);
-          inputRef.current.value = ""
+          inputRef.current.value = "";
         }}
         className="ml-3 inline btn-black-inverted"
       >
@@ -24,7 +24,7 @@ export const FriendRequestTextBox = (props) => {
   );
 };
 
-export const FriendElement = ({ friend }) => {
+export const FriendElement = ({ friend, onClickNewChat }) => {
   return (
     <div className="flex p-1 my-1">
       <Avatar
@@ -39,7 +39,11 @@ export const FriendElement = ({ friend }) => {
         </p>
       </div>
       <div className="inline-flex">
-        <button>
+        <button
+          onClick={() => {
+            onClickNewChat(friend.user);
+          }}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="inline h-10 w-10 mr-5 p-2 cursor-pointer bg-blue-500 rounded-full hover:border-opacity-100 hover:bg-white border border-blue-600 fill-current text-white hover:text-blue-600"

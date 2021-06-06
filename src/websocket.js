@@ -3,7 +3,6 @@ const ws = require("ws");
 function websocket(pool) {
   var conexionesApp = {}; //Diccionario [String (user id): Socket (client)]
   var conexionesFriends = {};
-  var users = {};
 
   const wss = new ws.Server({ port: 8085 });
   wss.on("connection", (client, req) => {
@@ -69,7 +68,6 @@ function websocket(pool) {
           }
           break;
         case "chatmsg":
-          //Insertar en la bbdd...
           try {
             const connection = await pool.getConnection();
             await connection.query(
@@ -92,6 +90,20 @@ function websocket(pool) {
                 "UPDATE friend SET accepted=1 WHERE id=?",
                 [data.id]
               );
+              const [petfilas, petcampos] = await connection.query(
+                "SELECT * FROM friend WHERE id=?",
+                [data.id]
+              );
+              if (conexionesFriends[petfilas[0].user1]) {
+                conexionesFriends[petfilas[0].user1].send(
+                  JSON.stringify({
+                    tipo: "newfriend",
+                    id: petfilas[0].id,
+                    user: petfilas[0].user2,
+                    since: new Date(),
+                  })
+                );
+              }
             } else {
               await connection.query("DELETE FROM friend WHERE id=?", [
                 data.id,
@@ -109,8 +121,8 @@ function websocket(pool) {
               [null, client.username, data.user, 0]
             );
             console.log(results);
-            if (conexionesFriends[data.username]) {
-              conexionesFriends[data.username].send(
+            if (conexionesFriends[data.user]) {
+              conexionesFriends[data.user].send(
                 JSON.stringify({
                   tipo: "nuevapeticion",
                   id: results.insertId,
@@ -120,8 +132,8 @@ function websocket(pool) {
             }
             client.send(
               JSON.stringify({
-                tipo: "success",
-                msg:
+                tipo: "info",
+                content:
                   "Se ha enviado una petición de amistad a " + data.user + ".",
               })
             );
@@ -130,48 +142,71 @@ function websocket(pool) {
             client.send(
               JSON.stringify({
                 tipo: "error",
-                msg:
-                  "No se pudo añadir al usuario " + data.user + " como amigo.",
+                content:
+                  "No se pudo enviar una petición de amistad al usuario " +
+                  data.user +
+                  ". ¿Estás seguro de que existe o de que no le has enviado ya una petición?",
               })
             );
           }
           break;
+        case "delfriend":
+          try {
+            const connection = await pool.getConnection();
+            const [petfilas, petcampos] = await connection.query(
+              "SELECT * FROM friend WHERE id=?",
+              [data.id]
+            );
+            await connection.query("DELETE FROM friend WHERE id=?", [data.id]);
+            var userEnviar = client.username == petcampos[0].user1 ? petcampos[0].user2 : petcampos[0].user1;
+            if(conexionesFriends[userEnviar]){
+              conexionesFriends[userEnviar].send(JSON.stringify({
+                tipo: "delfriend",
+                id: data.id
+              }))
+            }
+            client.send(JSON.stringify({
+              tipo: "success",
+              content: "Has eliminado a " + userEnviar + " de tu lista de amigos."
+            }))
+          } catch (err){
+            client.send(JSON.stringify({
+              tipo: "error",
+              content: "Hubo un error al procesar la solicitud en el servidor."
+            }))
+          }
         case "newchat":
           try {
             const connection = await pool.getConnection();
-            const query = await connection.query(
-              "SELECT id FROM chat WHERE id IN (SELECT id FROM chat_user WHERE user = ?)",
-              [client.username]
+            const [userchatsfields, userchatscampos] = await connection.query(
+              "SELECT chat FROM chat_user WHERE user = ? AND chat IN (SELECT chat FROM chat_user WHERE user = ?)", 
+              [client.username, data.username]
             );
-            console.log(query);
-            const results = await connection.query(
-              "INSERT INTO chat VALUES (null,null)",
-              null
+            if(userchatsfields.length){
+              client.send(JSON.stringify({
+                tipo: "info",
+                content: "Ya tiene un chat con el usuario " + data.username + "."
+              }));
+              return;
+            }
+            const insertChat = await connection.query(
+              "INSERT INTO chat VALUES (null,null)"
             );
+            const insertId = insertChat[0].insertId;
             await connection.query(
-              "INSERT INTO chat_entry VALUES (null, ?, ?)",
-              [client.username]
-            )
+              "INSERT INTO chat_user VALUES (null, ?, ?)",
+              [client.username, insertId]
+            );
 
             await connection.query(
-              "INSERT INTO chat_entry VALUES (null, ?, ?)",
-              [data.username]
-            )
-            console.log(results);
-            if (conexionesFriends[data.username]) {
-              conexionesFriends[data.username].send(
-                JSON.stringify({
-                  tipo: "nuevapeticion",
-                  id: results.insertId,
-                  user: client.username,
-                })
-              );
-            }
+              "INSERT INTO chat_user VALUES (null, ?, ?)",
+              [data.username, insertId]
+            );
+
             client.send(
               JSON.stringify({
                 tipo: "success",
-                msg:
-                  "Se ha enviado una petición de amistad a " + data.user + ".",
+                content: "Se ha creado un chat con " + data.username + ". Visite la sección principal para empezar a chatear!",
               })
             );
           } catch (err) {
@@ -179,8 +214,7 @@ function websocket(pool) {
             client.send(
               JSON.stringify({
                 tipo: "error",
-                msg:
-                  "No se pudo añadir al usuario " + data.user + " como amigo.",
+                content: "No se pudo crear un chat con " + data.username + ".",
               })
             );
           }
