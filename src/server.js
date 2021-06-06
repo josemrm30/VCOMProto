@@ -64,9 +64,9 @@ const handle = nextApp.getRequestHandler();
 
 async function authenticate(email, passwd) {
   try {
-    var userName, userPasswdCr, userEmail, userBirthdate;
+    var userName, userPasswdCr, userEmail;
     var query =
-      "SELECT name, passwdCr, email, birthdate FROM user WHERE email = ?";
+      "SELECT name, passwdCr, email FROM user WHERE email = ?";
     const connection = await pool.getConnection();
 
     var [result, fields] = await connection.query(query, [email]);
@@ -75,13 +75,11 @@ async function authenticate(email, passwd) {
       userName = result[0].name;
       userPasswdCr = result[0].passwdCr;
       userEmail = result[0].email;
-      userBirthdate = result[0].birthdate;
       const verified = bcrypt.compareSync(passwd, userPasswdCr);
       if (verified) {
         var response = {
           name: userName,
           email: userEmail,
-          birthdate: userBirthdate,
         };
       } else {
         var response = { error: "The password is invalid." };
@@ -96,20 +94,19 @@ async function authenticate(email, passwd) {
   }
 }
 
-async function signup(username, email, passwd, bday) {
+async function signup(username, email, passwd) {
   try {
-    var query = "INSERT INTO user VALUES (?, ?, ?, ?)";
+    var query = "INSERT INTO user VALUES (?, ?, ?)";
     const connection = await pool.getConnection();
 
     var passwdCr = bcrypt.hashSync(passwd, 10);
     var response = {};
-    await connection.query(query, [username, passwdCr, email, bday]);
+    await connection.query(query, [username, passwdCr, email]);
     connection.release();
 
     var response = {
       name: username,
       email: email,
-      birthdate: bday
     };
     console.log("probando" + response);
     return response;
@@ -153,9 +150,8 @@ server.post("/register", checkLogin, async (req, res, next) => {
   var username = req.body.username;
   var email = req.body.email;
   var passwd = req.body.password;
-  var bdate = req.body.birthdate;
   try {
-    var validation = await signup(username, email, passwd, bdate);
+    var validation = await signup(username, email, passwd);
     console.log("probando2" + validation);
     if (validation.error) {
       console.error(validation.error);
@@ -164,6 +160,7 @@ server.post("/register", checkLogin, async (req, res, next) => {
       var token = jsonwebtoken.sign({ validation }, jwtSecret, { expiresIn: expiration });
 
       res.cookie('token', token, { httpOnly: true });
+      res.cookie("username", validation.name, { httpOnly: true });
       res.json({ token });
     }
   }
