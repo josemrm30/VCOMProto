@@ -14,7 +14,7 @@ require('dotenv').config()
 const jwtSecret = process.env.JWT_SECRET;
 const expiration = process.env.JWT_EXPIRATION;
 
-var urlimgtemp = "https://image.freepik.com/vector-gratis/perfil-avatar-hombre-icono-redondo_24640-14044.jpg";
+var urlimgtemp = "/defaultprofilepic.jpg";
 
 /**
  * Variables que guardan la instancia del server con express y puerto y el ws
@@ -70,8 +70,7 @@ const handle = nextApp.getRequestHandler();
 async function authenticate(email, passwd) {
   try {
     var userUsername, userPasswdCr, userEmail;
-    var query =
-      "SELECT name, passwdCr, email FROM user WHERE email = ?";
+    var query = "SELECT name, passwdCr, email FROM user WHERE email = ?";
     const connection = await pool.getConnection();
 
     var [result, fields] = await connection.query(query, [email]);
@@ -108,12 +107,12 @@ async function signup(username, email, passwd) {
     const connection = await pool.getConnection();
 
     var [existName, fields] = await connection.query(checkname, [username]);
-    if (existName != "") {
+    if (!existName.length) {
       var response = { error: "This username already exist" };
       return response;
     }
     var [existEmail, fields] = await connection.query(checkemail, [email]);
-    if (existEmail != "") {
+    if (!existEmail.length) {
       var response = { error: "This email is already in use" };
       return response;
     }
@@ -125,6 +124,71 @@ async function signup(username, email, passwd) {
     var response = {
       username: username,
       email: email,
+      imgpath: urlimgtemp
+    };
+
+    return response;
+  }
+  catch (err) {
+    throw err;
+  }
+}
+
+async function update(username, email, passwd, origEmail, origUsername) {
+  try {
+    var auxName, auxEmail, passwdCr;
+    var query = "UPDATE user SET name = ?, passwdCr = ?, email = ? WHERE email = ?";
+    var checkname = "SELECT name FROM user WHERE name = ?"
+    var checkemail = "SELECT email FROM user WHERE email = ?"
+    var getPass = "SELECT passwdCr FROM user WHERE email = ?";
+    const connection = await pool.getConnection();
+    console.log("entrando 1");
+    if (username != null) {
+      console.log("entrando 2");
+      var [existName, fields] = await connection.query(checkname, [username]);
+      if (existName.length) {
+        var response = { error: "This username is already in use" };
+        return response;
+      }
+      else {
+        console.log("entrando 3");
+        auxName = username;
+      }
+    }
+    else {
+      console.log("entrando 4");
+      auxName = origUsername;
+    }
+    if (email != null) {
+      console.log("entrando 5");
+      var [existEmail, fields] = await connection.query(checkemail, [email]);
+      if (existEmail.length) {
+        var response = { error: "This email is already in use" };
+        return response;
+      }
+      else {
+        auxEmail = email;
+      }
+    }
+    else {
+      auxEmail = origEmail;
+    }
+    if (passwd != null) {
+      console.log("entrando 9");
+      passwdCr = bcrypt.hashSync(passwd, 10);
+    }
+    else{
+      console.log("entrando 10");
+      var [existPasswd, fields] = await connection.query(getPass, [origEmail]);
+      passwdCr = existPasswd[0].passwdCr;
+    }
+    console.log("entrando 11");
+    var response = {};
+    await connection.query(query, [auxName, passwdCr, auxEmail, origEmail]);
+    connection.release();
+    var response = {
+      username: auxName,
+      email: auxEmail,
       imgpath: urlimgtemp
     };
 
@@ -174,6 +238,31 @@ server.post("/register", checkLogin, async (req, res, next) => {
     else {
       var token = jsonwebtoken.sign({ validation }, jwtSecret, { expiresIn: expiration });
       res.cookie("token", token, { httpOnly: true });
+      res.cookie("user", JSON.stringify(validation), { httpOnly: true });
+      return res.json({ ok: "ok" });
+    }
+  }
+  catch (err) {
+    console.error(err)
+  }
+});
+
+server.post("/update", checkLogin, async (req, res, next) => {
+  var username = req.body.sendName;
+  var email = req.body.sendEmail;
+  var passwd = req.body.sendPasswd;
+  var origEmail = req.body.keyEmail;
+  var origUsername = req.body.keyName;
+  try {
+    var validation = await update(username, email, passwd, origEmail, origUsername);
+    if (validation.error) {
+      return res.json(validation);
+    }
+    else {
+      res.clearCookie("token");
+      res.clearCookie("user");
+      var token = jsonwebtoken.sign({ validation }, jwtSecret, { expiresIn: expiration });
+      res.cookie("token", token, { httpOnly: true, });
       res.cookie("user", JSON.stringify(validation), { httpOnly: true });
       return res.json({ ok: "ok" });
     }
