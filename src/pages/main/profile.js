@@ -2,13 +2,9 @@ import Image from "next/image";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.min.css";
 import { Headfoot } from "../../components/headfoot";
-
 import { Component } from "react";
 
-
 class Profile extends Component {
-
-
 
   constructor(props) {
     super(props);
@@ -17,7 +13,7 @@ class Profile extends Component {
       usernameForm: props.username,
       emailForm: props.email,
       passwordForm: null
-    }
+    } 
   }
 
   async checkEmail(email) {
@@ -55,7 +51,9 @@ class Profile extends Component {
     var userData = {
       sendName: null,
       sendEmail: null,
-      sendPasswd: null
+      sendPasswd: null,
+      keyEmail: this.props.email,
+      keyName: this.props.username
     };
     if (this.state.passwordForm) {
       if (await this.checkPassword(this.state.passwordForm)) {
@@ -81,21 +79,15 @@ class Profile extends Component {
     if (update.error) {
       toast.error(update.error);
     }
-    else {
-      window.location.href = 'http://' + window.location.host + '/main';
+    else{
+      window.location.href = 'http://' + window.location.host + '/main/profile';
     }
-
-
   }
-
-
-
-
 
   render() {
     return (
       <>
-        <Headfoot user={this.state.usernameForm}>
+        <Headfoot user={this.props.username}>
           <div className="flex w-full h-screen ">
             <div className="flex w-2/5 my-auto mx-16 shadow rounded-md bg-vcom-blue overflow-hidden">
               <div className="mb-3 w-full" >
