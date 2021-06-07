@@ -21,6 +21,7 @@ Usaremos el gestor de paquetes npm.
 
 - [React](https://es.reactjs.org/docs/create-a-new-react-app.html) Este paso vendrá mas tarde debido a NextJS.
 - [NextJS](https://johnserrano.co/blog/introduccion-a-next-js-el-framework-de-react). Es un framework FullStack.
+- Como alternativa a BootStrap, se ha usado [TailwindCSS](https://tailwindcss.com/).
 
 ### Backend
 - [Xampp](https://www.apachefriends.org/es/index.html)
