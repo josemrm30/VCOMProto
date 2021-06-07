@@ -107,12 +107,12 @@ async function signup(username, email, passwd) {
     const connection = await pool.getConnection();
 
     var [existName, fields] = await connection.query(checkname, [username]);
-    if (!existName.length) {
+    if (existName.length) {
       var response = { error: "This username already exist" };
       return response;
     }
     var [existEmail, fields] = await connection.query(checkemail, [email]);
-    if (!existEmail.length) {
+    if (existEmail.length) {
       var response = { error: "This email is already in use" };
       return response;
     }
