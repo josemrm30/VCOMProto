@@ -19,13 +19,14 @@ Primero de todo un listado del software que usamos
 ### Frontend
 Usaremos el gestor de paquetes npm. 
 
-[React](https://es.reactjs.org/docs/create-a-new-react-app.html) Este paso vendrá mas tarde debido a NextJS.
-[NextJS](https://johnserrano.co/blog/introduccion-a-next-js-el-framework-de-react) 
+- [React](https://es.reactjs.org/docs/create-a-new-react-app.html) Este paso vendrá mas tarde debido a NextJS.
+- [NextJS](https://johnserrano.co/blog/introduccion-a-next-js-el-framework-de-react). Es un framework FullStack.
 
 ### Backend
-[Xampp](https://www.apachefriends.org/es/index.html)
-[NodeJS](https://nodejs.org/es/download/) Es importante instalar node js puesto que viene con npm.
-[Express](https://expressjs.com/es/)
+- [Xampp](https://www.apachefriends.org/es/index.html)
+- [NodeJS](https://nodejs.org/es/download/) Es importante instalar node js puesto que viene con npm.
+- [NextJS](https://johnserrano.co/blog/introduccion-a-next-js-el-framework-de-react). Es un framework FullStack.
+- [Express](https://expressjs.com/es/) Junto a NextJS, gestionan las peticiones de los clientes.
 
 
 
@@ -36,7 +37,7 @@ Simplemente clona el repositorio.
 ### Instrucciones
 Lo primero es instalar Xampp con php y mysql, iniciar el servicio e importar el SQL.
 
-Utilizamos algunas variables de entorno en un .env para asegurar que los datos sean anonimos y continuen cifrados:
+Utilizamos algunas variables de entorno en un .env localizado en la carpeta base del proyecto para asegurar que los datos sean anonimos y continuen cifrados:
 - MYSQL_HOST Ubicación del servidor MYSQL.
 - MYSQL_PORT Puerto del mismo.
 - MYSQL_DATABASE Nombre de la BBDD.
@@ -52,7 +53,7 @@ Una vez hecho todo, simplemente ejecute `npm run runserver` y tendrá la aplicac
 
 
 ### Importando la BBDD.
-Usa el archivo `vcommult.sql` para la BBDD.
+Usa el archivo `vcommult.sql` para la BBDD. Importante iniciar la BBDD antes de empezar a interactuar con la aplicación.
 
 
 ### Problemas con el desarrollo.
