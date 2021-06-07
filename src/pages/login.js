@@ -6,8 +6,8 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.min.css";
 
 const Login = () => {
-  const [email, setEmail] = useState();
-  const [password, setPassword] = useState();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   async function loginUser(credentials) {
     return fetch('http://' + window.location.host + '/login', {
@@ -24,16 +24,27 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const user = await loginUser({
-      email,
-      password
-    });
-
-    if (user.error) {
-      toast.error(user.error);
+    if (email == "" || password == "") {
+      if (email == "") {
+        toast.error("The email is empty");
+      }
+      if (password == "") {
+        toast.error("The password is required");
+      }
     }
     else {
-      window.location.href = 'http://' + window.location.host + '/main';
+
+      const user = await loginUser({
+        email,
+        password
+      });
+
+      if (user.error) {
+        toast.error(user.error);
+      }
+      else {
+        window.location.href = 'http://' + window.location.host + '/main';
+      }
     }
   }
 
