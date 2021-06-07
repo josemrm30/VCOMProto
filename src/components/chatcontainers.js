@@ -11,7 +11,7 @@ export const ButtonCall = (props) => {
         console.log("Calling...");
         props.onClick();
       }}
-      hidden={props.calling}
+      hidden={props.hide}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -34,12 +34,10 @@ export const ButtonHangUp = (props) => {
   return (
     <button
       onClick={async () => {
-        if (props.calling) {
-          console.log("Disconnecting...");
-          props.onClick();
-        }
+        console.log("Disconnecting...");
+        props.onClick();
       }}
-      hidden={!props.calling}
+      hidden={props.hide}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -193,10 +191,12 @@ export const StreamComponent = (props) => {
 export const ChatCams = (props) => {
   return (
     <>
-      <div className="container-bg">
+      <div className="container-bg" hidden={props.hide}>
         <div className="block lg:flex lg:flex-wrap content-center justify-center mt-2">
           {props.streams.map((stream, index) => {
-            return <StreamComponent stream={stream} muted={index} />;
+            return (
+              <StreamComponent key={stream.id} stream={stream} muted={!index} />
+            );
           })}
         </div>
         {props.streams.length > 0 && (
@@ -220,6 +220,34 @@ export const ChatCams = (props) => {
         )}
       </div>
     </>
+  );
+};
+
+export const CallModal = (props) => {
+  return (
+    <div className="block">
+      <p>{props.username} is calling...</p>
+      <div className="inline-flex">
+        <ButtonCall
+          hidden="false"
+          onClick={() => {
+            console.log("modal ok");
+            props.onAcceptCall();
+          }}
+        />
+        <ButtonHangUp
+          hidden="false"
+          onClick={() => {
+            console.log("modal dismiss");
+            props.onRejectCall();
+          }}
+        />
+      </div>
+      <audio autoPlay loop>
+        <source src="/audio/ringtone.mp3" type="audio/mpeg" />
+        Sorry! Your browser does not support audio!
+      </audio>
+    </div>
   );
 };
 
@@ -261,13 +289,13 @@ export const ChatContainer = (props) => {
           onClick={async () => {
             props.onCallButtonClick();
           }}
-          calling={props.calling}
+          hide={props.calling}
         />
         <ButtonHangUp
           onClick={() => {
             props.onHangUpButtonClick();
           }}
-          calling={props.calling}
+          hide={!props.calling}
         />
       </div>
       <ChatCams
@@ -281,6 +309,7 @@ export const ChatContainer = (props) => {
           props.onHideCameraClick(hide);
         }}
         streams={props.streams}
+        hide={!props.callChat || props.chat.id != props.callChat.id}
       />
       <div
         ref={msgarea}

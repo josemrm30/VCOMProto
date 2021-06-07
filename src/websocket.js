@@ -62,9 +62,44 @@ function websocket(pool) {
             conexionesApp[data.receiverid].send(e);
           }
           break;
+        case "ring":
+          if (conexionesApp[data.username]) {
+            const ring = JSON.stringify({
+              tipo: "ring",
+              chatid: data.chatid,
+              username: client.username,
+            });
+            conexionesApp[data.username].send(ring);
+          } else {
+            //El cliente no existe, asi que no se puede realizar una llamada
+            setTimeout(() => {
+              client.send(
+                JSON.stringify({
+                  tipo: "declinecall",
+                  username: data.username,
+                  chatid: data.chatid,
+                })
+              );
+              client.send(
+                JSON.stringify({
+                  tipo: "error",
+                  content:
+                    "El usuario " +
+                    data.username +
+                    " está desconectado o no puede recibir llamadas.",
+                })
+              );
+            }, 1500); //Emular al menos unos tonos para que no sea directo y el usuario se entere del rechazo
+          }
+          break;
         case "rol":
           if (conexionesApp[data.receiverid]) {
             conexionesApp[data.receiverid].send(e);
+          }
+          break;
+        case "declinecall":
+          if (conexionesApp[data.username]) {
+            conexionesApp[data.username].send(e);
           }
           break;
         case "chatmsg":
@@ -116,6 +151,23 @@ function websocket(pool) {
         case "sendpeti":
           try {
             const connection = await pool.getConnection();
+            const [alreayFriendsFields, campos] = await connection.query(
+              "SELECT id FROM friend WHERE user1 = ? AND user2 = ? OR user2 = ? AND user1 = ?",
+              [client.username, data.user, client.username, data.user]
+            );
+            console.log(alreayFriendsFields);
+            if (alreayFriendsFields.length) {
+              client.send(
+                JSON.stringify({
+                  tipo: "error",
+                  content:
+                    "No se pudo enviar una petición de amistad al usuario " +
+                    data.user +
+                    " porque ya es tu amigo.",
+                })
+              );
+              return;
+            }
             const results = await connection.query(
               "INSERT INTO friend VALUES (?,?,?,?,0)",
               [null, client.username, data.user, 0]
@@ -145,7 +197,7 @@ function websocket(pool) {
                 content:
                   "No se pudo enviar una petición de amistad al usuario " +
                   data.user +
-                  ". ¿Estás seguro de que existe o de que no le has enviado ya una petición?",
+                  ". ¿Estás seguro de que existe?",
               })
             );
           }
@@ -158,35 +210,49 @@ function websocket(pool) {
               [data.id]
             );
             await connection.query("DELETE FROM friend WHERE id=?", [data.id]);
-            var userEnviar = client.username == petcampos[0].user1 ? petcampos[0].user2 : petcampos[0].user1;
-            if(conexionesFriends[userEnviar]){
-              conexionesFriends[userEnviar].send(JSON.stringify({
-                tipo: "delfriend",
-                id: data.id
-              }))
+            var userEnviar =
+              client.username == petcampos[0].user1
+                ? petcampos[0].user2
+                : petcampos[0].user1;
+            if (conexionesFriends[userEnviar]) {
+              conexionesFriends[userEnviar].send(
+                JSON.stringify({
+                  tipo: "delfriend",
+                  id: data.id,
+                })
+              );
             }
-            client.send(JSON.stringify({
-              tipo: "success",
-              content: "Has eliminado a " + userEnviar + " de tu lista de amigos."
-            }))
-          } catch (err){
-            client.send(JSON.stringify({
-              tipo: "error",
-              content: "Hubo un error al procesar la solicitud en el servidor."
-            }))
+            client.send(
+              JSON.stringify({
+                tipo: "success",
+                content:
+                  "Has eliminado a " + userEnviar + " de tu lista de amigos.",
+              })
+            );
+          } catch (err) {
+            client.send(
+              JSON.stringify({
+                tipo: "error",
+                content:
+                  "Hubo un error al procesar la solicitud en el servidor.",
+              })
+            );
           }
         case "newchat":
           try {
             const connection = await pool.getConnection();
             const [userchatsfields, userchatscampos] = await connection.query(
-              "SELECT chat FROM chat_user WHERE user = ? AND chat IN (SELECT chat FROM chat_user WHERE user = ?)", 
+              "SELECT chat FROM chat_user WHERE user = ? AND chat IN (SELECT chat FROM chat_user WHERE user = ?)",
               [client.username, data.username]
             );
-            if(userchatsfields.length){
-              client.send(JSON.stringify({
-                tipo: "info",
-                content: "Ya tiene un chat con el usuario " + data.username + "."
-              }));
+            if (userchatsfields.length) {
+              client.send(
+                JSON.stringify({
+                  tipo: "info",
+                  content:
+                    "Ya tiene un chat con el usuario " + data.username + ".",
+                })
+              );
               return;
             }
             const insertChat = await connection.query(
@@ -206,7 +272,10 @@ function websocket(pool) {
             client.send(
               JSON.stringify({
                 tipo: "success",
-                content: "Se ha creado un chat con " + data.username + ". Visite la sección principal para empezar a chatear!",
+                content:
+                  "Se ha creado un chat con " +
+                  data.username +
+                  ". Visite la sección principal para empezar a chatear!",
               })
             );
           } catch (err) {

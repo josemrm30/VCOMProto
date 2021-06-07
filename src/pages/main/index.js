@@ -1,6 +1,6 @@
 import { Headfoot } from "../../components/headfoot";
 import { SideBar } from "../../components/sidebar";
-import { ChatContainer } from "../../components/chatcontainers";
+import { CallModal, ChatContainer } from "../../components/chatcontainers";
 import { Component } from "react";
 import do_query from "../../api/db";
 import Chat from "../../utils/chat";
@@ -8,7 +8,6 @@ import ChatEntry from "../../utils/chat_entry";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.min.css";
 import { CallPopUp } from "../../components/callpopup";
-
 
 const config = {
   iceServers: [
@@ -59,13 +58,14 @@ class Main extends Component {
     super(props);
     this.state = {
       chats: props.chats,
+      actualCallChat: null,
       actualChat: null,
       streams: [],
       calling: false,
     };
     this.user = props.username;
     this.makingSDPOffer = false;
-    this.polite = false;
+    //this.polite = false;
   }
 
   //Gestión de los mensajes mediante websocket
@@ -73,6 +73,9 @@ class Main extends Component {
     var msg = JSON.parse(e.data);
     console.log(msg);
     switch (msg.tipo) {
+      case "error":
+        toast.error(msg.content);
+        break;
       case "icecandidate": //Si recibo un nuevo candidato ice (del otro peer)
         try {
           console.log("Me llega ICEC " + msg);
@@ -84,12 +87,14 @@ class Main extends Component {
       case "sdp":
         console.log("Me llega SDP " + msg);
         if (!this.pc) {
+          console.log("CONFIGURANDO PEER HANDLERS");
           await this.configPeerConnection();
+          this.configPeerConnectionHandlers();
         }
         const colision =
           msg.descripcion.type == "offer" &&
           (this.makingSDPOffer || this.pc.signalingState != "stable");
-        if (colision && !this.polite) return;
+        if (colision) return;
         await this.pc.setRemoteDescription(msg.descripcion);
         if (msg.descripcion.type == "offer") {
           await this.pc.setLocalDescription();
@@ -131,12 +136,16 @@ class Main extends Component {
       case "hangup":
         if (this.pc) {
           //Si hay PC, es que no hemos colgado.
-          this.setState((prevState) => {
+          /*this.setState((prevState) => {
             return {
               streams: [prevState.streams[0]],
             };
-          });
+          });*/
+          this.onHangUpButtonClick();
         }
+        break;
+      case "ring":
+        this.presentCallingAlert(msg.username, msg.chatid);
         break;
       case "chatmsg":
         var chatid = msg.chatid;
@@ -162,6 +171,11 @@ class Main extends Component {
             }
           }
         );
+        break;
+      case "declinecall":
+        if (this.state.actualCallChat) {
+          this.onHangUpButtonClick();
+        }
         break;
     }
   }
@@ -235,6 +249,7 @@ class Main extends Component {
       actualChat: selectedchat,
     });
   }
+
   async captureScreen() {
     try {
       let captureStream = await navigator.mediaDevices.getDisplayMedia({
@@ -248,6 +263,7 @@ class Main extends Component {
       console.error("Error: " + err);
     }
   }
+
   async configPeerConnection() {
     this.pc = new RTCPeerConnection(config);
 
@@ -255,14 +271,15 @@ class Main extends Component {
     for (const track of localStream.getTracks()) {
       this.pc.addTrack(track, localStream);
     }
-    this.ws.send(
+
+    /* this.ws.send(
       JSON.stringify({
         tipo: "rol",
         receiverid: this.state.actualChat.username,
         polite: !this.polite,
       })
     );
-
+    */
     this.pc.ontrack = ({ streams: [stream] }) => {
       console.log("stream found ", stream);
 
@@ -288,6 +305,15 @@ class Main extends Component {
       });
     };
 
+    this.setState((prevState) => {
+      return {
+        streams: [localStream, ...prevState.streams],
+        calling: true,
+      };
+    });
+  }
+
+  configPeerConnectionHandlers() {
     this.pc.onnegotiationneeded = async () => {
       console.log("Negotation needed");
       try {
@@ -296,14 +322,14 @@ class Main extends Component {
         console.log({
           tipo: "sdp",
           senderid: this.user,
-          receiverid: this.state.actualChat.username,
+          receiverid: this.state.actualCallChat.username,
           descripcion: this.pc.localDescription,
         });
         this.ws.send(
           JSON.stringify({
             tipo: "sdp",
             senderid: this.user,
-            receiverid: this.state.actualChat.username,
+            receiverid: this.state.actualCallChat.username,
             descripcion: this.pc.localDescription,
           })
         );
@@ -319,14 +345,14 @@ class Main extends Component {
         console.log({
           tipo: "icecandidate",
           senderid: this.user,
-          receiverid: this.state.actualChat.username,
+          receiverid: this.state.actualCallChat.username,
           icecandidate: candidate,
         });
         this.ws.send(
           JSON.stringify({
             tipo: "icecandidate",
             senderid: this.user,
-            receiverid: this.state.actualChat.username,
+            receiverid: this.state.actualCallChat.username,
             icecandidate: candidate,
           })
         );
@@ -339,18 +365,65 @@ class Main extends Component {
         this.pc.restartIce();
       }
     };
+  }
 
-    this.setState((prevState) => {
-      return {
-        streams: [localStream],
-        calling: true,
-      };
-    });
+  presentCallingAlert(username, id) {
+    const toastOptions = {
+      hideProgressBar: false,
+      closeOnClick: false,
+      autoClose: false,
+      toastId: id,
+    };
+    toast.info(
+      <CallModal
+        username={username}
+        onAcceptCall={async () => {
+          console.log("INCOMING CHAT ID " + id + "---" + this.state.chats[id]);
+          this.setState(
+            (prevState) => ({
+              actualChat: prevState.chats[id],
+              actualCallChat: prevState.chats[id],
+            }),
+            async () => {
+              await this.configPeerConnection();
+              this.configPeerConnectionHandlers();
+            }
+          );
+
+          toast.dismiss(id);
+        }}
+        onRejectCall={() => {
+          this.ws.send(
+            JSON.stringify({
+              tipo: "declinecall",
+              username: username,
+              chatid: id,
+            })
+          );
+          toast.dismiss(id);
+        }}
+      />,
+      toastOptions
+    );
   }
 
   async onCallButtonClick() {
     try {
+      if (this.state.actualCallChat) {
+        this.onHangUpButtonClick();
+      }
+      this.ws.send(
+        JSON.stringify({
+          tipo: "ring",
+          chatid: this.state.actualChat.id,
+          username: this.state.actualChat.username,
+        })
+      );
+      this.setState({
+        actualCallChat: this.state.actualChat,
+      });
       await this.configPeerConnection();
+      //this.configPeerConnectionHandlers();
     } catch (err) {
       console.log(err);
     }
@@ -364,27 +437,23 @@ class Main extends Component {
         track.stop();
       });
     }
+
     this.ws.send(
       JSON.stringify({
         tipo: "hangup",
         senderid: this.user,
-        receiverid: this.state.actualChat.username,
+        receiverid: this.state.actualCallChat.username,
       })
     );
+
     this.setState({
       streams: [],
       calling: false,
+      actualCallChat: null,
     });
   }
 
   onSendMessageClick(msg) {
-    console.log({
-      tipo: "chatmsg",
-      chatid: this.state.actualChat.id,
-      senderid: this.user,
-      receiverid: this.state.actualChat.username,
-      message: msg,
-    });
     this.ws.send(
       JSON.stringify({
         tipo: "chatmsg",
@@ -418,6 +487,7 @@ class Main extends Component {
           {this.state.actualChat && (
             <ChatContainer
               chat={this.state.actualChat}
+              callChat={this.state.actualCallChat}
               streams={this.state.streams}
               calling={this.state.calling}
               onCallButtonClick={async () => {
