@@ -6,7 +6,7 @@ export const Headfoot = (props) => {
     <>
       <TitleIcon></TitleIcon>
       <NavBar user={props.user} />
-      <div className="flex h-full w-full max-h-screen max-w-screen">{props.children}</div>
+      <div className="flex h-screen w-full max-h-screen max-w-screen">{props.children}</div>
       <script type="text/javascript" src="/adapter.js"></script>
     </>
   );

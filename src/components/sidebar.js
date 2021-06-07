@@ -4,8 +4,8 @@ export const SideBar = (props) => {
   return (
     <div className="inline-block">
       <label
-        htlmfor="sidebar-menu"
-        className="point-cursor lg:hidden block bg-white"
+        for="sidebar-menu"
+        className="point-cursor lg:hidden block bg-vcom-buttons"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -24,7 +24,7 @@ export const SideBar = (props) => {
       </label>
       <input type="checkbox" className="hidden" id="sidebar-menu" />
       <div
-        className="lg:block hidden h-screen mr-1 pr-5 pl-3 pt-3 w-60 border-r border-gray-500 bg-gray-800"
+        className="lg:block hidden h-full mr-1 pr-5 pl-3 pt-3 w-60 border-r border-gray-500 bg-gray-800"
         id="sidebar-movil"
       >
         <ul>

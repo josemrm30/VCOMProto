@@ -7,8 +7,8 @@ import Chat from "../../utils/chat";
 import ChatEntry from "../../utils/chat_entry";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.min.css";
-import { CallPopUp } from "../../components/callpopup";
 
+//Configuración usada en la conexión para establecer sus servidores STUN y TURN (protocolo ICE)
 const config = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
@@ -35,7 +35,7 @@ const config = {
 };
 
 /**
- * STREAM RESTRICTIONS
+ * REESTRICCIONES DE LA RETRANSMISIÓN
  */
 const rest = {
   audio: true,
@@ -44,7 +44,7 @@ const rest = {
 
 /**
  * SESSION DESCRIPTION PROTOCOL
- * RESTRICTIONS
+ * REESTRICCIONES
  */
 const sdprest = {
   mandatory: {
@@ -53,13 +53,17 @@ const sdprest = {
   },
 };
 
+/**
+ * Componente principal
+ */
 class Main extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      //En el estado se guarda todo lo que varía
       chats: props.chats,
-      actualCallChat: null,
-      actualChat: null,
+      actualCallChat: null, //Necesito guardar con cual chat se corresponde la llamada en curso para poder
+      actualChat: null, //así ocultar las cámaras en caso de que el usuario cambie de chat pero no cuelgue.
       streams: [],
       calling: false,
     };
@@ -73,29 +77,35 @@ class Main extends Component {
     var msg = JSON.parse(e.data);
     console.log(msg);
     switch (msg.tipo) {
-      case "error":
+      case "error": //Error en el lado del servidor (ya sea por un input erroneo, o algo similar)
         toast.error(msg.content);
         break;
       case "icecandidate": //Si recibo un nuevo candidato ice (del otro peer)
         try {
           console.log("Me llega ICEC " + msg);
-          await this.pc.addIceCandidate(msg.icecandidate);
+          await this.pc.addIceCandidate(msg.icecandidate); //Lo añado a mi conexion
         } catch (err) {
           console.log("No se pudo añadir ice candidate: " + err);
         }
         break;
-      case "sdp":
+      case "sdp": //Si me llega una descripción SDP (Proceso de signaling)
         console.log("Me llega SDP " + msg);
         if (!this.pc) {
+          //En caso de que no exista la conexión, la creo
           console.log("CONFIGURANDO PEER HANDLERS");
           await this.configPeerConnection();
           this.configPeerConnectionHandlers();
         }
+
+        //Colisión: Por prevenir: Si es una oferta y no estoy en el estado estable (stable = no tengo ni descripción local ni remota)
+        //tengo que rechazar la oferta porque ya tengo una
         const colision =
           msg.descripcion.type == "offer" &&
           (this.makingSDPOffer || this.pc.signalingState != "stable");
         if (colision) return;
+        //Asigno el SDP entrante como descripción remota
         await this.pc.setRemoteDescription(msg.descripcion);
+        //Si es una oferta, tengo que responder con una respuesta
         if (msg.descripcion.type == "offer") {
           await this.pc.setLocalDescription();
           console.log("Envio SDP 2: ", {
@@ -114,6 +124,8 @@ class Main extends Component {
           );
         }
         break;
+      /*
+        USADO EN EL PROTOTIPO ANTERIOR, YA NO SIRVE
       case "useroffline": //Si un usuario se desconecta, actualizo la lista
         return;
         this.setState((prevState) => {
@@ -130,31 +142,28 @@ class Main extends Component {
           return { users: userAux };
         });
         break;
+       */
       case "rol":
         this.polite = msg.polite;
         break;
       case "hangup":
+        //Finalizo la llamada
         if (this.pc) {
-          //Si hay PC, es que no hemos colgado.
-          /*this.setState((prevState) => {
-            return {
-              streams: [prevState.streams[0]],
-            };
-          });*/
           this.onHangUpButtonClick();
         }
         break;
       case "ring":
+        //Me llaman, presento notificación de llamada.
         this.presentCallingAlert(msg.username, msg.chatid);
         break;
       case "chatmsg":
-        var chatid = msg.chatid;
-        var sender = msg.senderid;
-        var newchats = { ...this.state.chats };
-        console.log(newchats);
-        var chat = newchats[chatid];
-        console.log(chat);
-        chat.msgs.push(new ChatEntry(1, chatid, sender, msg.message));
+        //Me llega un nuevo mensaje
+        var chatid = msg.chatid; //Obtengo id del chat
+        var sender = msg.senderid; //y username del usuario que lo envia
+        var newchats = { ...this.state.chats }; //Voy a cambiar los chats, creo una copia del diccionario que los almacena
+        var chat = newchats[chatid]; //Obtengo el chat correspondiente
+        chat.msgs.push(new ChatEntry(1, chatid, sender, msg.message)); //Introduzco el mensaje
+        //Actualizo el estado del componente de react
         this.setState(
           (prevState) => {
             return {
@@ -162,6 +171,7 @@ class Main extends Component {
             };
           },
           () => {
+            //Callback para refrescar el chat actual, ya que podría haber cambiado
             if (this.state.actualChat) {
               this.setState((prevState) => {
                 return {
@@ -173,6 +183,7 @@ class Main extends Component {
         );
         break;
       case "declinecall":
+        //Si el usuario al que llamo rechaza la llamada mediante la notificación (ring) finalizo la llamada.
         if (this.state.actualCallChat) {
           this.onHangUpButtonClick();
         }
@@ -182,10 +193,12 @@ class Main extends Component {
 
   //Configurar la conexión al server WS
   setupWS() {
-    this.ws = new WebSocket("ws://" + window.location.hostname + ":8085");
+    this.ws = new WebSocket("ws://" + window.location.hostname + ":8085"); //Conectar al servidor
+    //Asignar handlers
     this.ws.addEventListener("open", (e) => {
       console.log("Conectado a ws server... ");
       this.ws.send(
+        //Me identifico
         JSON.stringify({
           tipo: "username",
           pagina: "app",
@@ -212,7 +225,7 @@ class Main extends Component {
     }
   }
 
-  //Función para ocultar la cámara del usuario.
+  //Función para ocultar la cámara del usuario. (Simil a la de mutearse)
   onHideCamClick(hide) {
     for (const track of this.state.streams[0].getTracks()) {
       if (track.kind == "video") {
@@ -221,22 +234,29 @@ class Main extends Component {
     }
   }
 
+  //Desconectarse de la aplicación
   disconnect() {
     if (this.ws) {
+      if (this.actualCallChat) {
+        this.onHangUpButtonClick(); //Cuelgo ya que cierro la app
+      }
       const msgdc = {
         tipo: "disconnect",
         pagina: "app",
         userid: this.user,
       };
       console.log(JSON.stringify(msgdc));
-      this.ws.send(JSON.stringify(msgdc));
+      this.ws.send(JSON.stringify(msgdc)); //Notifico al WS que me voy
       if (this.pc) {
+        //Cierro conexión en caso de que no esté cerrada.
         this.pc.close();
         this.pc = null;
       }
-    } else console.log("Como puede ser posible esto xd");
+    }
   }
 
+  //Función que se ejecuta justo después del que el componente de react sea renderizado.
+  //Más info: React Component LifeCycle.
   componentDidMount() {
     this.setupWS();
     window.addEventListener("beforeunload", () => {
@@ -244,29 +264,36 @@ class Main extends Component {
     });
   }
 
+  //Función ejecutada cuando se hace click en un chat de la sidebar
   onSideBarClick(selectedchat) {
     this.setState({
       actualChat: selectedchat,
     });
   }
 
+  //Compartir pantalla
   async captureScreen() {
     try {
+      //Obtengo stream de la pantalla
       let captureStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
       });
+      //Lo añado a la conexión
       for (const track of captureStream.getTracks()) {
         console.log(track.label);
         this.pc.addTrack(track, captureStream);
       }
+      //En caso de error, lo notifico al user
     } catch (err) {
-      console.error("Error: " + err);
+      toast.error("It is not possible to share your screen right now.");
     }
   }
 
+  //Configurar la conexión (RTCPeerConnection) para realizar una llamada
   async configPeerConnection() {
-    this.pc = new RTCPeerConnection(config);
+    this.pc = new RTCPeerConnection(config); //Creo la conexión con los servidores usados por ICE
 
+    //Obtengo mi camara y video
     const localStream = await navigator.mediaDevices.getUserMedia(rest);
     for (const track of localStream.getTracks()) {
       this.pc.addTrack(track, localStream);
@@ -280,19 +307,21 @@ class Main extends Component {
       })
     );
     */
+
+    //Asigno el handler al evento ontrack para actualizar los streams
     this.pc.ontrack = ({ streams: [stream] }) => {
       console.log("stream found ", stream);
 
       /**
-       * FIXED: Doble stream bug
+       * FIXED: Doble stream
        * Antes, WebRTC usaba los MediaStreams directamente y no las pistas, por eso se duplicaba los streams
        * del peer remoto. El evento ontrack se disparaba dos veces ya que se envia la pista de audio y la de video por
        * separado, aunque pertenecen al mismo stream. Por lo tanto, hay que comprobar que no se haya añadido ya
        * el stream dicho al array de streams del componente de react mediante sus ids.
        */
       for (var elemstream in this.state.streams) {
-        console.log(this.state.streams[elemstream].id + "==" + stream.id);
-        console.log(this.state.streams[elemstream].id);
+        //console.log(this.state.streams[elemstream].id + "==" + stream.id);
+        //console.log(this.state.streams[elemstream].id);
         if (this.state.streams[elemstream].id == stream.id) {
           console.log("Ya tenia este stream");
           return;
@@ -305,6 +334,8 @@ class Main extends Component {
       });
     };
 
+    //Pongo mi stream el primero en la lista para que aparezca antes que el resto.
+    //Entro en modo llamada (calling = true)
     this.setState((prevState) => {
       return {
         streams: [localStream, ...prevState.streams],
@@ -313,7 +344,10 @@ class Main extends Component {
     });
   }
 
+  //Configuración del resto de handlers de la conexión
   configPeerConnectionHandlers() {
+    //Necesitaré negociación si el signalingstate de mi conexión es stable
+    //Stable: Sin descripciones de ningún tipo.
     this.pc.onnegotiationneeded = async () => {
       console.log("Negotation needed");
       try {
@@ -340,6 +374,7 @@ class Main extends Component {
       }
     };
 
+    //En caso de que encuentre candidatos ICE, se los envio al otro peer mediante WS
     this.pc.onicecandidate = ({ candidate }) => {
       if (candidate) {
         console.log({
@@ -359,14 +394,16 @@ class Main extends Component {
       }
     };
 
+    //En el caso de que la recolecta de candidatos flle, lo reintento
     this.pc.oniceconnectionstatechange = () => {
       console.log("OnIceConnectionState: ", this.pc.iceConnectionState);
       if (this.pc.iceConnectionState == "failed") {
-        this.pc.restartIce();
+        this.pc.restartIce(); //Vuelvo a ejecutar el agente ICE
       }
     };
   }
 
+  //Presentar la notificación de llamada
   presentCallingAlert(username, id) {
     const toastOptions = {
       hideProgressBar: false,
@@ -374,25 +411,29 @@ class Main extends Component {
       autoClose: false,
       toastId: id,
     };
+    //CallModal es un componente propio encargado de presentar el layout correspondiente en el toast.
     toast.info(
       <CallModal
         username={username}
         onAcceptCall={async () => {
-          console.log("INCOMING CHAT ID " + id + "---" + this.state.chats[id]);
+          //Si acepto la llamada, configuro la conexión
+          //console.log("INCOMING CHAT ID " + id + "---" + this.state.chats[id]);
           this.setState(
             (prevState) => ({
               actualChat: prevState.chats[id],
               actualCallChat: prevState.chats[id],
             }),
             async () => {
+              //Es necesario usar el handler de setState ya que la actualización del estado NO es sincrona.
               await this.configPeerConnection();
               this.configPeerConnectionHandlers();
             }
           );
 
-          toast.dismiss(id);
+          toast.dismiss(id); //Cierro el toast
         }}
         onRejectCall={() => {
+          //Si no, notifico al otro usuario que no voy a entrar
           this.ws.send(
             JSON.stringify({
               tipo: "declinecall",
@@ -400,18 +441,21 @@ class Main extends Component {
               chatid: id,
             })
           );
-          toast.dismiss(id);
+          toast.dismiss(id); //Cierro el toast
         }}
       />,
       toastOptions
     );
   }
 
+  //Si el usuario pulsa el botón de llamar (usuario iniciador, Caller)
   async onCallButtonClick() {
     try {
+      //Si estaba en otra llamada, la finalizo
       if (this.state.actualCallChat) {
         this.onHangUpButtonClick();
       }
+      //Mando al WS el mensaje de tipo "ring" para notificar al otro usuario de que lo quiero llamar
       this.ws.send(
         JSON.stringify({
           tipo: "ring",
@@ -419,9 +463,11 @@ class Main extends Component {
           username: this.state.actualChat.username,
         })
       );
+      //Actualizo el chat de llamada actual
       this.setState({
         actualCallChat: this.state.actualChat,
       });
+      //Creo la conexion para que esté preparada por si el user acepte la llamada
       await this.configPeerConnection();
       //this.configPeerConnectionHandlers();
     } catch (err) {
@@ -429,15 +475,18 @@ class Main extends Component {
     }
   }
 
+  //Si alguno de los peers pulsa el botón de colgar
   onHangUpButtonClick() {
+    //Cierro la conexión y la elimino
     this.pc.close();
     this.pc = null;
+    //Paro todas las pistas
     for (const stream of this.state.streams) {
       stream.getTracks().forEach((track) => {
         track.stop();
       });
     }
-
+    //Notifico el cierre de la llamada
     this.ws.send(
       JSON.stringify({
         tipo: "hangup",
@@ -446,6 +495,7 @@ class Main extends Component {
       })
     );
 
+    //Reinicio el estado del componente
     this.setState({
       streams: [],
       calling: false,
@@ -453,7 +503,9 @@ class Main extends Component {
     });
   }
 
+  //Si el usuario pulsa el botón de enviar mensaje
   onSendMessageClick(msg) {
+    //Envio al ws mi mensaje
     this.ws.send(
       JSON.stringify({
         tipo: "chatmsg",
@@ -463,6 +515,7 @@ class Main extends Component {
         message: msg,
       })
     );
+    //Actualizo los chats
     var newchats = { ...this.state.chats };
     var chat = newchats[this.state.actualChat.id];
     chat.msgs.push(
@@ -473,6 +526,7 @@ class Main extends Component {
     });
   }
 
+  //Renderizado del componente de react.
   render() {
     return (
       <>
@@ -524,6 +578,8 @@ class Main extends Component {
   }
 }
 
+//Función que permite a NextJS (framework que permite Server Side Rendering con React) pasar al componente como
+//propiedades la información persistente de la BBDD (En este caso, chats)
 export async function getServerSideProps(context) {
   const { req, res } = context;
   const user = JSON.parse(req.cookies.user).username;

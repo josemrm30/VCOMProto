@@ -10,40 +10,41 @@ import { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.min.css";
 
+//Componente encargado de la página de amigos (Forma funcional)
 const Friends = (props) => {
-  var ws = null;
+  var ws = null; //Conexión a WS
   const user = props.username;
-  const [friends, setFriends] = useState(props.friendlist);
-  const [peticiones, setPeticiones] = useState(props.petitionlist);
+  const [friends, setFriends] = useState(props.friendlist); //Lista de amigos
+  const [peticiones, setPeticiones] = useState(props.petitionlist); //Lista de peticiones
 
+  //Función para manejar los mensajes del servidor al cliente
   const onmessage = function (e) {
     var msg = JSON.parse(e.data);
     switch (msg.tipo) {
-      case "success":
+      case "success": //Presentar un toast con un mensaje exitoso
         toast.success(msg.content);
         break;
-      case "info":
+      case "info": //Presentar un toast informativo
         toast.info(msg.content);
         break;
-      case "error":
+      case "error": //Presentar un toast con un error
         toast.error(msg.content);
         break;
-      case "nuevapeticion":
-        console.log("NUEVA PETICION sis");
-        setPeticiones((prevPeticiones) => ({
+      case "nuevapeticion": //Obtener una petición de amistad enviada al cliente
+        //console.log("NUEVA PETICION");
+        setPeticiones((prevPeticiones) => ({ //Actualizar el estado con la nueva petición
           ...prevPeticiones,
           [msg.id]: new FriendEntry(msg.id, msg.user, new Date(), false),
         }));
         break;
-      case "newfriend":
-        console.log("nuevo amigo");
-        setFriends((prevFriends) => ({
+      case "newfriend": //Actualizar lista de amigos en caso de que se acepte la petición
+        setFriends((prevFriends) => ({ //Actualizar el estado
           ...prevFriends,
           [msg.id]: new FriendEntry(msg.id, msg.user, msg.since, true),
         }));
         toast.success("¡" + msg.user + " acepto tu solicitud de amistad!");
         break;
-      case "delfriend":
+      case "delfriend": //Eliminar un amigo
         setFriends((prevFriends) => {
           var updated = [...prevFriends];
           delete updated[msg.id];
@@ -52,6 +53,7 @@ const Friends = (props) => {
         break;
     }
   };
+
   //Configurar la conexión al server WS
   const setupWS = function () {
     ws = new WebSocket("ws://" + window.location.hostname + ":8085");
@@ -73,6 +75,8 @@ const Friends = (props) => {
     });
   };
 
+  //Hook que permite la incialización de la conexión ws en caso de que no exista. Es necesario declarar las dependencias (ws) en su segundo
+  //parámetro como un array.
   useEffect(() => {
     console.log(ws);
     if (!ws) {
@@ -80,18 +84,19 @@ const Friends = (props) => {
     }
   }, [ws]);
 
+  //Función llamada a la hora de tratar una petición de amistad
   const tratarPeticion = function (peticion, aceptada) {
     var peticionesUpdate = { ...peticiones };
     peticion.accepted = aceptada;
-    if (aceptada) {
+    if (aceptada) { //Si ha sido aceptada, tengo nuevo amigo
       setFriends((prevFriends) => ({
         ...prevFriends,
         [peticion.id]: peticion,
       }));
     }
-    delete peticionesUpdate[peticion.id];
+    delete peticionesUpdate[peticion.id]; //Borro de la lista de peticiones
     setPeticiones(peticionesUpdate);
-    ws.send(
+    ws.send( //Envio si la petición ha sido aceptada o no.
       JSON.stringify({
         tipo: "resolverpeti",
         id: peticion.id,
@@ -100,6 +105,7 @@ const Friends = (props) => {
     );
   };
 
+  //Enviar petición de amistad a otro usuario
   const sendPeticion = function (username) {
     ws.send(
       JSON.stringify({
@@ -109,6 +115,7 @@ const Friends = (props) => {
     );
   };
 
+  //Eliminar amigo
   const eliminaAmigo = function (idEntrada) {
     ws.send(
       JSON.stringify({
@@ -123,6 +130,7 @@ const Friends = (props) => {
     });
   };
 
+  //Crear un nuevo chat con un usuario
   const empezarChat = function (username) {
     ws.send(
       JSON.stringify({
@@ -132,6 +140,7 @@ const Friends = (props) => {
     );
   };
 
+  //Renderizar el componente (la página)
   return (
     <Headfoot user={props.username}>
       <div className="lg:flex block flex-row w-full mx-auto mt-1">
@@ -187,6 +196,9 @@ const Friends = (props) => {
     </Headfoot>
   );
 };
+
+//Función que permite a NextJS (framework que permite Server Side Rendering con React) pasar al componente como
+//propiedades la información persistente de la BBDD (En este caso, peticiones y amigos)
 export async function getServerSideProps(context) {
   const { req, res } = context; //Obtener request y response
   const user = JSON.parse(req.cookies.user).username; //Obtener username

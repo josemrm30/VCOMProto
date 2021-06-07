@@ -51,8 +51,8 @@ export const NavBar = (props) => {
       </div>
 
       <label
-        htlmfor="dropdown-menu"
-        className="point-cursor lg:hidden block bg-white"
+        for="dropdown-menu"
+        className="point-cursor lg:hidden block bg-black"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
