@@ -22,29 +22,6 @@ export const UserChatCard = ({ username, lastmsg, pp, selected, onClick }) => {
   );
 };
 
-export const GroupChatCard = ({
-  groupname,
-  lastmsg,
-  lastmsgnick,
-  selected,
-}) => {
-  const isSelected = selected ? "bg-white" : "bg-gray-300";
-  return (
-    <>
-      <div className={"chat-card-dark " + isSelected}>
-        <div className="pl-2 overflow-hidden">
-          <p className="font-semibold block truncate">{groupname}</p>
-          <div>
-            <p className="inline-block truncate font-medium">{lastmsgnick}</p>
-            <p className="inline-block truncate">: {lastmsg}</p>
-          </div>
-        </div>
-      </div>
-      <hr className="my-3 w-10/12 m-auto border-gray-600" />
-    </>
-  );
-};
-
 export const MessageCard = ({ chatEntry }) => {
   return (
     <>

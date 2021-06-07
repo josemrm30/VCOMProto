@@ -68,8 +68,8 @@ class Main extends Component {
       calling: false,
     };
     this.user = props.username;
-    this.makingSDPOffer = false;
-    //this.polite = false;
+    this.makingSDPOffer = false; //Saber si el peer ha hecho una oferta SDP para evitar posibles colisiones.
+    this.handlers = false; //Saber si se han configurado los handlers de la conexión (para no configurarlos antes de haber recibido una oferta si es el peer que llama)
   }
 
   //Gestión de los mensajes mediante websocket
@@ -90,11 +90,11 @@ class Main extends Component {
         break;
       case "sdp": //Si me llega una descripción SDP (Proceso de signaling)
         console.log("Me llega SDP " + msg);
-        if (!this.pc) {
+        if (!this.handlers) {
           //En caso de que no exista la conexión, la creo
           console.log("CONFIGURANDO PEER HANDLERS");
-          await this.configPeerConnection();
           this.configPeerConnectionHandlers();
+          this.handlers = true;
         }
 
         //Colisión: Por prevenir: Si es una oferta y no estoy en el estado estable (stable = no tengo ni descripción local ni remota)
@@ -108,12 +108,12 @@ class Main extends Component {
         //Si es una oferta, tengo que responder con una respuesta
         if (msg.descripcion.type == "offer") {
           await this.pc.setLocalDescription();
-          console.log("Envio SDP 2: ", {
+          /*console.log("Envio SDP 2: ", {
             tipo: "sdp",
             senderid: this.user,
             receiverid: msg.senderid,
             descripcion: this.pc.localDescription,
-          });
+          });*/
           this.ws.send(
             JSON.stringify({
               tipo: "sdp",
@@ -142,10 +142,11 @@ class Main extends Component {
           return { users: userAux };
         });
         break;
-       */
+
       case "rol":
         this.polite = msg.polite;
         break;
+       */
       case "hangup":
         //Finalizo la llamada
         if (this.pc) {
@@ -162,7 +163,7 @@ class Main extends Component {
         var sender = msg.senderid; //y username del usuario que lo envia
         var newchats = { ...this.state.chats }; //Voy a cambiar los chats, creo una copia del diccionario que los almacena
         var chat = newchats[chatid]; //Obtengo el chat correspondiente
-        chat.msgs.push(new ChatEntry(1, chatid, sender, msg.message)); //Introduzco el mensaje
+        chat.msgs.push(new ChatEntry(chat.msgs[chat.msgs.length - 1].entryID + 1, chatid, sender, msg.message)); //Introduzco el mensaje
         //Actualizo el estado del componente de react
         this.setState(
           (prevState) => {
@@ -427,6 +428,7 @@ class Main extends Component {
               //Es necesario usar el handler de setState ya que la actualización del estado NO es sincrona.
               await this.configPeerConnection();
               this.configPeerConnectionHandlers();
+              this.handlers = true;
             }
           );
 
@@ -480,6 +482,7 @@ class Main extends Component {
     //Cierro la conexión y la elimino
     this.pc.close();
     this.pc = null;
+    this.handlers = false;
     //Paro todas las pistas
     for (const stream of this.state.streams) {
       stream.getTracks().forEach((track) => {
@@ -533,6 +536,7 @@ class Main extends Component {
         <Headfoot user={this.user}>
           <SideBar
             chats={this.state.chats}
+            actualChat={this.state.actualChat}
             ononSideBarClick={(selectedChat) => {
               this.onSideBarClick(selectedChat);
             }}
@@ -604,6 +608,7 @@ export async function getServerSideProps(context) {
 
       var msgsarr = [];
       for (const elem in msgs) {
+        console.log(msgs[elem])
         msgsarr.push(
           new ChatEntry(
             msgs[elem].id,
@@ -615,7 +620,7 @@ export async function getServerSideProps(context) {
       }
       chatsdic[chatID] = new Chat(chatID, peers.user, msgsarr);
     }
-    console.log(chatsdic);
+    //console.log(chatsdic);
     var chatsdiscparsed = JSON.parse(JSON.stringify(chatsdic)); //Hay que hacerlo porque si no NextJS se queja (si, es un poco inutil)
     return {
       props: { username: user, chats: chatsdiscparsed },

@@ -1,4 +1,4 @@
-import { GroupChatCard, UserChatCard } from "./chatcards";
+import { UserChatCard } from "./chatcards";
 
 export const SideBar = (props) => {
   return (
@@ -38,7 +38,7 @@ export const SideBar = (props) => {
                 username={chat.username}
                 lastmsg={lastmsg}
                 pp="https://image.freepik.com/vector-gratis/perfil-avatar-hombre-icono-redondo_24640-14044.jpg"
-                selected={true}
+                selected={props.actualChat && chat.id == props.actualChat.id}
                 onClick={() => {
                   props.ononSideBarClick(chat);
                 }}

@@ -10,7 +10,9 @@ function websocket(pool) {
       //Al recibir un mensaje (e->evento)
       console.log("Nuevo mensaje --> ", JSON.parse(e));
       var data = JSON.parse(e);
-      switch (data.tipo) { //Según el tipo, hago algo.
+      switch (
+        data.tipo //Según el tipo, hago algo.
+      ) {
         case "disconnect": //Si un usuario se desconecta cerramos su conexión y lo eliminamos de la lista de users online
           if (data.pagina == "app") {
             conexionesApp[data.userid].close();
@@ -81,11 +83,13 @@ function websocket(pool) {
             }, 1500); //Emular al menos una espera para que no sea directo y el usuario se entere del rechazo
           }
           break;
+        /*
         case "rol":
-          if (conexionesApp[data.receiverid]) {
-            conexionesApp[data.receiverid].send(e);
-          }
-          break;
+        if (conexionesApp[data.receiverid]) {
+          conexionesApp[data.receiverid].send(e);
+        }
+        break;
+        */
         case "declinecall":
           if (conexionesApp[data.username]) {
             conexionesApp[data.username].send(e);
@@ -94,12 +98,14 @@ function websocket(pool) {
         case "chatmsg": //En caso de que llegue un nuevo mensaje
           try {
             const connection = await pool.getConnection();
-            await connection.query( //Lo guardo en la BBDD como entrada de un chat (persistencia)
+            await connection.query(
+              //Lo guardo en la BBDD como entrada de un chat (persistencia)
               "INSERT INTO chat_entry VALUES (?, ?, ?, ?) ",
               [null, data.chatid, data.senderid, data.message]
             );
             connection.release();
-            if (conexionesApp[data.receiverid]) { //Se lo envio al otro usuario si esta online
+            if (conexionesApp[data.receiverid]) {
+              //Se lo envio al otro usuario si esta online
               conexionesApp[data.receiverid].send(e);
             }
           } catch (err) {
@@ -109,7 +115,8 @@ function websocket(pool) {
         case "resolverpeti":
           try {
             const connection = await pool.getConnection();
-            if (data.aceptar) { //Si la petición ha sido aceptada, la actualizo en la BBDD
+            if (data.aceptar) {
+              //Si la petición ha sido aceptada, la actualizo en la BBDD
               await connection.query(
                 "UPDATE friend SET accepted=1 WHERE id=?",
                 [data.id]
@@ -120,7 +127,8 @@ function websocket(pool) {
               );
               if (conexionesFriends[petfilas[0].user1]) {
                 conexionesFriends[petfilas[0].user1].send(
-                  JSON.stringify({ //Como ha sido aceptada, indico al usuario que envió la petición el exito.
+                  JSON.stringify({
+                    //Como ha sido aceptada, indico al usuario que envió la petición el exito.
                     tipo: "newfriend",
                     id: petfilas[0].id,
                     user: petfilas[0].user2,
@@ -128,7 +136,8 @@ function websocket(pool) {
                   })
                 );
               }
-            } else { //Si no ha sido aceptada, la elimino.
+            } else {
+              //Si no ha sido aceptada, la elimino.
               await connection.query("DELETE FROM friend WHERE id=?", [
                 data.id,
               ]);
@@ -140,12 +149,14 @@ function websocket(pool) {
         case "sendpeti":
           try {
             const connection = await pool.getConnection(); //Inserto la petición como no aceptada en la BBDD
-            const [alreayFriendsFields, campos] = await connection.query( //Busco si no eran amigos anteriormente.
+            const [alreayFriendsFields, campos] = await connection.query(
+              //Busco si no eran amigos anteriormente.
               "SELECT id FROM friend WHERE user1 = ? AND user2 = ? OR user2 = ? AND user1 = ?",
               [client.username, data.user, client.username, data.user]
             );
             console.log(alreayFriendsFields);
-            if (alreayFriendsFields.length) { //Si lo eran (hay resultados), notificar error
+            if (alreayFriendsFields.length) {
+              //Si lo eran (hay resultados), notificar error
               client.send(
                 JSON.stringify({
                   tipo: "error",
@@ -157,12 +168,14 @@ function websocket(pool) {
               );
               return;
             }
-            const results = await connection.query( //Si no, insertar nueva petición no aceptada en la bbdd
+            const results = await connection.query(
+              //Si no, insertar nueva petición no aceptada en la bbdd
               "INSERT INTO friend VALUES (?,?,?,?,0)",
               [null, client.username, data.user, 0]
             );
             console.log(results);
-            if (conexionesFriends[data.user]) { //Si el usuario destino esta online, enviar la petición para que se actualice su interfaz
+            if (conexionesFriends[data.user]) {
+              //Si el usuario destino esta online, enviar la petición para que se actualice su interfaz
               conexionesFriends[data.user].send(
                 JSON.stringify({
                   tipo: "nuevapeticion",
@@ -171,14 +184,16 @@ function websocket(pool) {
                 })
               );
             }
-            client.send( //Notificar al usuario que envió la petición el éxito de la operación.
+            client.send(
+              //Notificar al usuario que envió la petición el éxito de la operación.
               JSON.stringify({
                 tipo: "info",
                 content:
                   "Se ha enviado una petición de amistad a " + data.user + ".",
               })
             );
-          } catch (err) { //En caso de error (por ejemplo, foreigns keys erroneas) enviar notificación al usuario
+          } catch (err) {
+            //En caso de error (por ejemplo, foreigns keys erroneas) enviar notificación al usuario
             console.log(err);
             client.send(
               JSON.stringify({
@@ -194,15 +209,19 @@ function websocket(pool) {
         case "delfriend": //Eliminar amigo
           try {
             const connection = await pool.getConnection();
-            const [petfilas, petcampos] = await connection.query( //Obtener petición completa
+            const [petfilas, petcampos] = await connection.query(
+              //Obtener petición completa
               "SELECT * FROM friend WHERE id=?",
               [data.id]
             );
-            await connection.query("DELETE FROM friend WHERE id=?", [data.id]); //Eliminar petición de la bbdd
+
             var userEnviar = //Saber a que usuario enviar el mensaje "delfriend" para que actualice su interfaz
-              client.username == petcampos[0].user1
-                ? petcampos[0].user2
-                : petcampos[0].user1;
+              client.username == petfilas[0].user1
+                ? petfilas[0].user2
+                : petfilas[0].user1;
+
+            await connection.query("DELETE FROM friend WHERE id=?", [data.id]); //Eliminar petición de la bbdd
+
             if (conexionesFriends[userEnviar]) {
               conexionesFriends[userEnviar].send(
                 JSON.stringify({
@@ -219,6 +238,7 @@ function websocket(pool) {
               })
             );
           } catch (err) {
+            console.log(err);
             client.send(
               JSON.stringify({
                 tipo: "error",
@@ -227,14 +247,17 @@ function websocket(pool) {
               })
             );
           }
+          break;
         case "newchat": //Creación de un nuevo chat
           try {
             const connection = await pool.getConnection();
-            const [userchatsfields, userchatscampos] = await connection.query( //Comprobar si no existe ya un chat con ese usuario
+            const [userchatsfields, userchatscampos] = await connection.query(
+              //Comprobar si no existe ya un chat con ese usuario
               "SELECT chat FROM chat_user WHERE user = ? AND chat IN (SELECT chat FROM chat_user WHERE user = ?)",
               [client.username, data.username]
             );
-            if (userchatsfields.length) { //Si lo hay, notificar
+            if (userchatsfields.length) {
+              //Si lo hay, notificar
               client.send(
                 JSON.stringify({
                   tipo: "info",

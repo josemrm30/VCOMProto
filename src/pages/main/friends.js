@@ -46,7 +46,7 @@ const Friends = (props) => {
         break;
       case "delfriend": //Eliminar un amigo
         setFriends((prevFriends) => {
-          var updated = [...prevFriends];
+          var updated = {...prevFriends};
           delete updated[msg.id];
           return updated;
         });
@@ -124,7 +124,7 @@ const Friends = (props) => {
       })
     );
     setFriends((prevFriends) => {
-      var updated = [...prevFriends];
+      var updated = {...prevFriends};
       delete updated[idEntrada];
       return updated;
     });
@@ -155,6 +155,9 @@ const Friends = (props) => {
                 friend={friend}
                 onClickNewChat={(username) => {
                   empezarChat(username);
+                }}
+                onClickDeleteFriend={(username) => {
+                  eliminaAmigo(id);
                 }}
               />
             );
@@ -211,7 +214,7 @@ export async function getServerSideProps(context) {
     var amigosarr = {};
     for (const elem in amigos) {
       const amigo = amigos[elem];
-      console.log(amigo);
+      //console.log(amigo);
       var nickfriend = amigo.user1 == user ? amigo.user2 : amigo.user1;
       amigosarr[amigo.id] = new FriendEntry(
         amigo.id,
@@ -220,7 +223,7 @@ export async function getServerSideProps(context) {
         amigo.accepted
       );
     }
-    console.log(amigosarr);
+    //console.log(amigosarr);
     const solicitudes = await do_query({
       query: "SELECT * FROM friend WHERE accepted = 0 AND (user2 = ?)",
       values: [user],

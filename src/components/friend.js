@@ -24,7 +24,11 @@ export const FriendRequestTextBox = (props) => {
   );
 };
 
-export const FriendElement = ({ friend, onClickNewChat }) => {
+export const FriendElement = ({
+  friend,
+  onClickNewChat,
+  onClickDeleteFriend,
+}) => {
   return (
     <div className="flex p-1 my-1">
       <Avatar
@@ -59,7 +63,11 @@ export const FriendElement = ({ friend, onClickNewChat }) => {
             />
           </svg>
         </button>
-        <button>
+        <button
+          onClick={() => {
+            onClickDeleteFriend();
+          }}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="inline h-10 w-10 mr-5 p-2 cursor-pointer bg-red-600 rounded-full hover:border-opacity-100 hover:bg-white border border-red-600 fill-current text-white hover:text-red-600"
