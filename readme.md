@@ -1,6 +1,6 @@
 # VCOM
 
-VCOM es una aplicación de comunicación web para todos en donde estén.
+VCOM es una aplicación de comunicación web para todos en donde estén basada en [WebRTC](https://www.w3.org/TR/webrtc/).
 Las principales funcionalidades de la aplicación son:
 - Un sistema de autenticación y autorización basado en JWT lo cual mediante el uso de una conexión https lo hace paricularmente resistente.
 - Chats de texto con tus amigos, recibe y envia mensajes.
