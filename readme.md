@@ -13,7 +13,7 @@ VCOM usa React como su FrontEnd y Express y nextJS para el BackEnd.
 Es sencillo montar tu propio servidor VCOM.
 
 
-### Software required
+### Software necesario
 Primero de todo un listado del software que usamos
 
 ### Frontend
